@@ -1,5 +1,6 @@
 import Preloader from './components/Common/Preloader'
 import { usePreloader } from './hooks/usePreloader'
+import brainGif from './assets/brain.gif'
 import './App.css'
 
 function App() {
@@ -12,6 +13,10 @@ function App() {
   const scrollToGames = () => {
     const gamesSection = document.getElementById('games-section');
     gamesSection?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  };
+
+  const navigateToGame = (gameRoute: string) => {
+    window.location.href = gameRoute;
   };
 
   if (isLoading) {
@@ -35,20 +40,6 @@ function App() {
         <div className="header-content">
           <h1>🎮 PDSA Gaming Platform</h1>
           <p>Algorithm Challenge Arena</p>
-          <div className="header-stats">
-            <div className="stat-item">
-              <span className="stat-number">5</span>
-              <span className="stat-label">Games</span>
-            </div>
-            <div className="stat-item">
-              <span className="stat-number">∞</span>
-              <span className="stat-label">Challenges</span>
-            </div>
-            <div className="stat-item">
-              <span className="stat-number">🧠</span>
-              <span className="stat-label">Algorithms</span>
-            </div>
-          </div>
           <button className="scroll-to-games-btn" onClick={scrollToGames}>
             <span>Explore Games</span>
             <span className="scroll-arrow">↓</span>
@@ -60,6 +51,9 @@ function App() {
         <section className="intro-section">
           <h2>Master Data Structures & Algorithms Through Gaming</h2>
           <p>Challenge yourself with interactive algorithmic puzzles designed to enhance your problem-solving skills</p>
+          <div className="brain-animation-container">
+            <img src={brainGif} alt="Brain thinking animation" className="brain-gif" />
+          </div>
         </section>
 
         <div id="games-section" className="games-section-wrapper">
@@ -77,7 +71,7 @@ function App() {
               <span className="tag">BFS</span>
               <span className="tag">Dynamic Programming</span>
             </div>
-            <button className="game-button">Play Now</button>
+            <button className="game-button" onClick={() => navigateToGame('/games/snake-ladder')}>Play Now</button>
           </div>
           
           <div className="game-card">
@@ -88,7 +82,7 @@ function App() {
               <span className="tag">Graph Theory</span>
               <span className="tag">Max Flow</span>
             </div>
-            <button className="game-button">Play Now</button>
+            <button className="game-button" onClick={() => navigateToGame('/games/traffic-simulation')}>Play Now</button>
           </div>
           
           <div className="game-card">
@@ -99,7 +93,7 @@ function App() {
               <span className="tag">Optimization</span>
               <span className="tag">NP-Hard</span>
             </div>
-            <button className="game-button">Play Now</button>
+            <button className="game-button" onClick={() => navigateToGame('/games/tsp')}>Play Now</button>
           </div>
           
           <div className="game-card">
@@ -110,7 +104,7 @@ function App() {
               <span className="tag">Recursion</span>
               <span className="tag">Stack</span>
             </div>
-            <button className="game-button">Play Now</button>
+            <button className="game-button" onClick={() => navigateToGame('/games/tower-of-hanoi')}>Play Now</button>
           </div>
           
           <div className="game-card">
@@ -121,7 +115,7 @@ function App() {
               <span className="tag">Backtracking</span>
               <span className="tag">Constraint Satisfaction</span>
             </div>
-            <button className="game-button">Play Now</button>
+            <button className="game-button" onClick={() => navigateToGame('/games/eight-queens')}>Play Now</button>
           </div>
         </div>
         </div>

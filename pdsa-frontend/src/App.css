@@ -146,6 +146,7 @@ body {
   display: flex;
   flex-direction: column;
   align-items: center;
+  padding: 0 2rem;
 }
 
 .app-header h1 {
@@ -192,9 +193,9 @@ body {
 
 .scroll-to-games-btn {
   position: absolute;
-  top: 55%;
-  right: 50%;
-  transform: translate(50%, -50%);
+  top: 50%;
+  right: 0;
+  transform: translateY(-50%);
   background: linear-gradient(135deg, #40e0d0, #64ffda);
   color: #0f0f23;
   border: none;
@@ -214,7 +215,7 @@ body {
 }
 
 .scroll-to-games-btn:hover {
-  transform: translate(50%, -50%) scale(1.05);
+  transform: translateY(-50%) scale(1.05);
   box-shadow: 0 10px 25px rgba(64, 224, 208, 0.3);
 }
 
@@ -256,6 +257,52 @@ body {
   font-size: 1.1rem;
   color: #8892b0;
   line-height: 1.6;
+  margin-bottom: 2rem;
+}
+
+.brain-animation-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin-top: 1.8rem;
+  position: relative;
+}
+
+.brain-gif {
+  width: 250px;
+  height: 250px;
+  object-fit: contain;
+  border-radius: 50%;
+  padding: 1rem;
+  background: rgba(64, 224, 208, 0.1);
+  border: 2px solid rgba(64, 224, 208, 0.3);
+  box-shadow: 
+    0 0 30px rgba(64, 224, 208, 0.2),
+    0 0 60px rgba(64, 224, 208, 0.1);
+  transition: all 0.3s ease;
+  animation: brainPulse 3s ease-in-out infinite;
+}
+
+.brain-gif:hover {
+  transform: scale(1.1);
+  box-shadow: 
+    0 0 40px rgba(64, 224, 208, 0.4),
+    0 0 80px rgba(64, 224, 208, 0.2);
+  border-color: rgba(64, 224, 208, 0.6);
+}
+
+@keyframes brainPulse {
+  0%, 100% {
+    box-shadow: 
+      0 0 30px rgba(64, 224, 208, 0.2),
+      0 0 60px rgba(64, 224, 208, 0.1);
+  }
+  50% {
+    box-shadow: 
+      0 0 40px rgba(64, 224, 208, 0.3),
+      0 0 80px rgba(64, 224, 208, 0.15);
+    transform: scale(1.05);
+  }
 }
 
 .games-section-wrapper {
@@ -519,6 +566,11 @@ body {
     font-size: 1rem;
   }
 
+  .brain-gif {
+    width: 100px;
+    height: 100px;
+  }
+
   .section-header {
     margin-bottom: 2rem;
     padding: 1.5rem;
@@ -605,6 +657,15 @@ body {
 
   .intro-section p {
     font-size: 0.95rem;
+  }
+
+  .brain-gif {
+    width: 80px;
+    height: 80px;
+  }
+
+  .brain-animation-container {
+    margin-top: 1.5rem;
   }
 
   .section-header {
