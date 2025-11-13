@@ -1,0 +1,117 @@
+# ===========================================
+# PDSA Coursework - Comprehensive .gitignore
+# ===========================================
+
+# ===== .NET Core Backend =====
+# Build results
+**/bin/
+**/obj/
+**/out/
+
+# User-specific files
+*.user
+*.userosscache
+*.sln.docstates
+
+# Visual Studio files
+.vs/
+*.vscode/settings.json
+
+# NuGet
+packages/
+*.nuget.props
+*.nuget.targets
+project.lock.json
+project.fragment.lock.json
+artifacts/
+
+# Entity Framework
+**/Migrations/
+
+# ===== Node.js Frontend =====
+# Dependencies
+**/node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
+
+# Build outputs
+**/dist/
+**/dist-ssr/
+**/build/
+
+# Environment variables
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# ===== Database =====
+# SQLite databases
+*.db
+*.db-shm
+*.db-wal
+*.sqlite
+*.sqlite3
+
+# ===== IDE and Editor Files =====
+# Visual Studio Code
+.vscode/
+!.vscode/extensions.json
+!.vscode/launch.json
+!.vscode/settings.json
+!.vscode/tasks.json
+
+# Visual Studio
+.vs/
+*.suo
+*.user
+*.sln.docstates
+
+# JetBrains IDEs
+.idea/
+*.iml
+*.ipr
+*.iws
+
+# ===== Operating System =====
+# Windows
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+$RECYCLE.BIN/
+
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+Icon?
+
+# Linux
+*~
+.nfs*
+
+# ===== Temporary Files =====
+*.tmp
+*.temp
+*.log
+*.cache
+
+# ===== Old Backup =====
+# Backup of old Create React App
+pdsa-frontend-old/
+
+# ===== Test Coverage =====
+coverage/
+*.lcov
+
+# ===== Package Manager Lock Files =====
+# Keep package-lock.json for reproducible builds
+# yarn.lock
+
+# ===== Local Development =====
+*.local
+.env.local

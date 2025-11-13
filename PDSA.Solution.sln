@@ -1,0 +1,34 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.0.31903.59
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PDSA.API", "PDSA.API\PDSA.API.csproj", "{D0F11145-0E55-413B-8B8A-2B2D68164700}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PDSA.Core", "PDSA.Core\PDSA.Core.csproj", "{61EF9CE9-CAD1-4CD8-AD36-F0B0E3215F31}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PDSA.Tests", "PDSA.Tests\PDSA.Tests.csproj", "{1414080F-CDFF-44C4-8AB3-7F6024375828}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{D0F11145-0E55-413B-8B8A-2B2D68164700}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{D0F11145-0E55-413B-8B8A-2B2D68164700}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{D0F11145-0E55-413B-8B8A-2B2D68164700}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{D0F11145-0E55-413B-8B8A-2B2D68164700}.Release|Any CPU.Build.0 = Release|Any CPU
+		{61EF9CE9-CAD1-4CD8-AD36-F0B0E3215F31}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{61EF9CE9-CAD1-4CD8-AD36-F0B0E3215F31}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{61EF9CE9-CAD1-4CD8-AD36-F0B0E3215F31}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{61EF9CE9-CAD1-4CD8-AD36-F0B0E3215F31}.Release|Any CPU.Build.0 = Release|Any CPU
+		{1414080F-CDFF-44C4-8AB3-7F6024375828}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{1414080F-CDFF-44C4-8AB3-7F6024375828}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{1414080F-CDFF-44C4-8AB3-7F6024375828}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{1414080F-CDFF-44C4-8AB3-7F6024375828}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+EndGlobal

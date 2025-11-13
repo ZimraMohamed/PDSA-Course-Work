@@ -1,0 +1,66 @@
+# ===== .NET Web API Project =====
+
+# Build results
+bin/
+obj/
+out/
+
+# User-specific files
+*.user
+*.userosscache
+*.sln.docstates
+
+# User-specific files (MonoDevelop/Xamarin Studio)
+*.userprefs
+
+# Build results
+[Dd]ebug/
+[Dd]ebugPublic/
+[Rr]elease/
+[Rr]eleases/
+x64/
+x86/
+build/
+bld/
+[Bb]in/
+[Oo]bj/
+[Oo]ut/
+msbuild.log
+msbuild.err
+msbuild.wrn
+
+# Visual Studio files
+.vs/
+
+# Entity Framework
+**/Migrations/*
+!**/Migrations/*.cs
+*.db
+*.db-shm
+*.db-wal
+
+# SQLite database files
+*.sqlite
+*.sqlite3
+
+# Application specific
+appsettings.Development.json
+appsettings.Production.json
+logs/
+
+# NuGet
+packages/
+*.nupkg
+nuget.exe
+project.lock.json
+project.fragment.lock.json
+artifacts/
+
+# Environment variables
+.env
+.env.local
+.env.development
+.env.production
+
+# Logs
+*.log
