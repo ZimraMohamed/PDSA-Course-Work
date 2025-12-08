@@ -1,6 +1,7 @@
 import { createBrowserRouter, RouterProvider } from 'react-router-dom';
 import App from './App';
 import { TSPGame } from './components/Games/TravelingSalesman';
+import { EQPGame } from './components/Games/EightQueens';
 import './AppRouter.css';
 
 const ComingSoonPage = ({ title, icon }: { title: string; icon: string }) => (
@@ -21,6 +22,10 @@ const router = createBrowserRouter([
     element: <TSPGame />,
   },
   {
+    path: '/games/eqp',
+    element: <EQPGame />,
+  },
+  {
     path: '/games/snake-ladder',
     element: <ComingSoonPage title="Snake & Ladder Game" icon="🐍" />,
   },
@@ -34,7 +39,7 @@ const router = createBrowserRouter([
   },
   {
     path: '/games/eight-queens',
-    element: <ComingSoonPage title="Eight Queens Game" icon="♛" />,
+    element: < EQPGame/>,
   },
 ]);
 
