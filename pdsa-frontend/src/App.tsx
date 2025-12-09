@@ -1,9 +1,11 @@
+import { useNavigate } from 'react-router-dom';
 import Preloader from './components/Common/Preloader'
 import { usePreloader } from './hooks/usePreloader'
 import brainGif from './assets/brain.gif'
 import './App.css'
 
 function App() {
+  const navigate = useNavigate();
   const { isLoading, progress } = usePreloader();
 
   const handlePreloaderComplete = () => {
@@ -16,7 +18,7 @@ function App() {
   };
 
   const navigateToGame = (gameRoute: string) => {
-    window.location.href = gameRoute;
+    navigate(gameRoute);
   };
 
   if (isLoading) {

@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import './TSPGame.css';
 import './TSPGame.css';
 
@@ -33,6 +34,7 @@ interface TSPSolution {
 }
 
 const TSPGame: React.FC = () => {
+  const navigate = useNavigate();
   const [gameRound, setGameRound] = useState<TSPGameRound | null>(null);
   const [selectedCities, setSelectedCities] = useState<string[]>([]);
   const [solution, setSolution] = useState<TSPSolution | null>(null);
@@ -187,7 +189,7 @@ const TSPGame: React.FC = () => {
   return (
     <div className="tsp-game">
       <div className="tsp-nav">
-        <button onClick={() => window.location.href = '/'} className="tsp-back-btn">
+        <button onClick={() => navigate('/')} className="tsp-back-btn">
           ← Back to Games
         </button>
       </div>
