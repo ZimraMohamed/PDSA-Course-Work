@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import "./EQPGame.css";
 
 type Cell = {
@@ -28,6 +29,7 @@ type EQPSolutionDto = {
 const API_BASE = "http://localhost:5007";
 
 const EQPGame: React.FC = () => {
+  const navigate = useNavigate();
   const [gameRound, setGameRound] = useState<EQPGameRound | null>(null);
   const [board, setBoard] = useState<Cell[][]>([]);
   const [playerName, setPlayerName] = useState<string>("");
@@ -71,9 +73,32 @@ const EQPGame: React.FC = () => {
     setBoard(prev => {
       const next = prev.map(row => row.map(cell => ({ ...cell })));
       const cell = next[r][c];
+      
+      // Count current queens
+      const currentQueenCount = next.flat().filter(c => c.hasQueen).length;
+      
+      // If trying to add a queen and already at max (8), don't allow it
+      if (!cell.hasQueen && currentQueenCount >= 8) {
+        return prev;
+      }
+      
       cell.hasQueen = !cell.hasQueen;
       return next;
     });
+  };
+
+  const canPlaceQueen = (r: number, c: number): boolean => {
+    const cell = board[r]?.[c];
+    if (!cell) return false;
+    
+    // If cell already has a queen, allow removal
+    if (cell.hasQueen) return true;
+    
+    // Count current queens
+    const currentQueenCount = board.flat().filter(c => c.hasQueen).length;
+    
+    // If trying to add a queen and already at max (8), don't allow it
+    return currentQueenCount < 8;
   };
 
   const submitPlayerSolution = async () => {
@@ -127,6 +152,12 @@ const EQPGame: React.FC = () => {
 
   return (
     <div className="eqp-game">
+      <div className="eqp-nav">
+        <button onClick={() => navigate('/')} className="eqp-back-btn">
+          ← Back to Games
+        </button>
+      </div>
+
       <div className="eqp-header">
         <h1>♟️ Eight Queens Puzzle</h1>
         <p>Place 8 queens so no two attack each other. Submit your solution or let the solver find all solutions.</p>
@@ -146,10 +177,10 @@ const EQPGame: React.FC = () => {
                 {row.map((cell, c) => (
                   <button
                     key={c}
-                    className={`eqp-cell ${cell.hasQueen ? "queen" : ""} ${(r + c) % 2 === 0 ? "light" : "dark"}`}
+                    className={`eqp-cell ${cell.hasQueen ? "queen" : ""} ${(r + c) % 2 === 0 ? "light" : "dark"} ${!canPlaceQueen(r, c) ? "disabled" : ""}`}
                     onClick={() => toggleQueen(r, c)}
                   >
-                    {cell.hasQueen ? "♛" : ""}
+                    <span>{cell.hasQueen ? "♛" : "\u200B"}</span>
                   </button>
                 ))}
               </div>
