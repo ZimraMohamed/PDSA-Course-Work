@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import './TSPGame.css';
+import ConfirmDialog from '../../Common/ConfirmDialog';
 import './TSPGame.css';
 
 interface City {
@@ -43,6 +43,13 @@ const TSPGame: React.FC = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string>('');
   const [validationResult, setValidationResult] = useState<any>(null);
+  
+  // Game progress tracking
+  const [currentRound, setCurrentRound] = useState<number>(1);
+  const [passedRounds, setPassedRounds] = useState<number>(0);
+  const [failedRounds, setFailedRounds] = useState<number>(0);
+  const [showConfirmDialog, setShowConfirmDialog] = useState<boolean>(false);
+  const TOTAL_ROUNDS = 15;
 
   const API_BASE_URL = 'http://localhost:5007';
   const cities = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J'];
@@ -53,6 +60,33 @@ const TSPGame: React.FC = () => {
   useEffect(() => {
     createNewGame();
   }, []);
+
+  const handleBackToGames = () => {
+    if (currentRound < TOTAL_ROUNDS && (passedRounds > 0 || failedRounds > 0)) {
+      setShowConfirmDialog(true);
+    } else {
+      navigate('/');
+    }
+  };
+
+  const handleConfirmLeave = () => {
+    setShowConfirmDialog(false);
+    navigate('/');
+  };
+
+  const handleCancelLeave = () => {
+    setShowConfirmDialog(false);
+  };
+
+  const handleNextRound = () => {
+    if (currentRound < TOTAL_ROUNDS) {
+      setCurrentRound(prev => prev + 1);
+      createNewGame();
+    } else {
+      alert(`Game completed! You passed ${passedRounds} rounds and failed ${failedRounds} rounds.`);
+      navigate('/');
+    }
+  };
 
   const createNewGame = async () => {
     setLoading(true);
@@ -158,10 +192,12 @@ const TSPGame: React.FC = () => {
       setValidationResult(data);
       setGameStatus('validated');
       
-      // TODO: Save result to database if correct
+      // Update game progress
       if (data.isCorrect) {
-        // Save player result to database
+        setPassedRounds(prev => prev + 1);
         console.log('Answer is correct! Saving to database...');
+      } else {
+        setFailedRounds(prev => prev + 1);
       }
     } catch (err) {
       setError('Failed to validate answer. Please try again.');
@@ -192,7 +228,7 @@ const TSPGame: React.FC = () => {
   return (
     <div className="tsp-game">
       <div className="tsp-nav">
-        <button onClick={() => navigate('/')} className="tsp-back-btn">
+        <button onClick={handleBackToGames} className="tsp-back-btn">
           ← Back to Games
         </button>
       </div>
@@ -200,14 +236,27 @@ const TSPGame: React.FC = () => {
       <div className="tsp-header">
         <h1>🗺️ Traveling Salesman Problem</h1>
         <p>Find the shortest route to visit selected cities and return home</p>
-        <div className="tsp-header-actions">
+        
+        <div className="tsp-game-stats">
           <div className="player-info">
             <span className="player-label">Player:</span>
             <span className="player-name">{playerName}</span>
           </div>
-          <button onClick={createNewGame} className="tsp-new-game-btn">
-            New Game
-          </button>
+          
+          <div className="game-progress">
+            <div className="progress-item">
+              <span className="progress-label">Round:</span>
+              <span className="progress-value">{currentRound}/{TOTAL_ROUNDS}</span>
+            </div>
+            <div className="progress-item passed">
+              <span className="progress-label">Passed:</span>
+              <span className="progress-value">{passedRounds}</span>
+            </div>
+            <div className="progress-item failed">
+              <span className="progress-label">Failed:</span>
+              <span className="progress-value">{failedRounds}</span>
+            </div>
+          </div>
         </div>
       </div>
 
@@ -339,21 +388,29 @@ const TSPGame: React.FC = () => {
           {solution && gameStatus === 'validated' && (
             <div className="tsp-results">
               {validationResult && (
-                <div className={`tsp-validation ${validationResult.isCorrect ? 'correct' : 'incorrect'}`}>
-                  <p>
-                    {validationResult.isCorrect ? (
-                      <>
-                        🎉 Correct! Your answer of {validationResult.userAnswer}km is within {validationResult.toleranceUsed}% of the optimal solution.
-                      </>
-                    ) : (
-                      <>
-                        ❌ Incorrect. Your answer: {validationResult.userAnswer}km, 
-                        Correct answer: {validationResult.correctAnswer}km 
-                        (Difference: {validationResult.difference}km)
-                      </>
-                    )}
-                  </p>
-                </div>
+                <>
+                  <div className={`tsp-validation ${validationResult.isCorrect ? 'correct' : 'incorrect'}`}>
+                    <p>
+                      {validationResult.isCorrect ? (
+                        <>
+                          🎉 Correct! Your answer of {validationResult.userAnswer}km is within {validationResult.toleranceUsed}% of the optimal solution.
+                        </>
+                      ) : (
+                        <>
+                          ❌ Incorrect. Your answer: {validationResult.userAnswer}km, 
+                          Correct answer: {validationResult.correctAnswer}km 
+                          (Difference: {validationResult.difference}km)
+                        </>
+                      )}
+                    </p>
+                  </div>
+                  
+                  <div className="tsp-next-round-section">
+                    <button onClick={handleNextRound} className="tsp-next-round-btn">
+                      {currentRound < TOTAL_ROUNDS ? 'Next Round →' : 'Finish Game'}
+                    </button>
+                  </div>
+                </>
               )}
 
               <div className="tsp-solution-card">
@@ -386,6 +443,17 @@ const TSPGame: React.FC = () => {
           )}
         </div>
       )}
+
+      {/* Confirm Dialog */}
+      <ConfirmDialog
+        isOpen={showConfirmDialog}
+        title="Leave Game?"
+        message="Are you sure you want to leave? Your game progress will be lost."
+        confirmText="Leave"
+        cancelText="Stay"
+        onConfirm={handleConfirmLeave}
+        onCancel={handleCancelLeave}
+      />
     </div>
   );
 };
