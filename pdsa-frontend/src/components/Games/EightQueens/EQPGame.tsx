@@ -32,10 +32,12 @@ const EQPGame: React.FC = () => {
   const navigate = useNavigate();
   const [gameRound, setGameRound] = useState<EQPGameRound | null>(null);
   const [board, setBoard] = useState<Cell[][]>([]);
-  const [playerName, setPlayerName] = useState<string>("");
   const [message, setMessage] = useState<string>("");
   const [loading, setLoading] = useState<boolean>(false);
   const [solutionInfo, setSolutionInfo] = useState<EQPSolutionDto | null>(null);
+
+  // Get player name from sessionStorage
+  const playerName = sessionStorage.getItem('currentPlayerName') || 'Anonymous';
 
   useEffect(() => {
     createNewGame();
@@ -60,7 +62,6 @@ const EQPGame: React.FC = () => {
       setGameRound(data);
       setBoard(createEmptyBoard(data.boardSize));
       setSolutionInfo(null);
-      setPlayerName("");
     } catch (err) {
       console.error(err);
       setMessage("Failed to create new game.");
@@ -188,10 +189,10 @@ const EQPGame: React.FC = () => {
           </div>
 
           <div className="eqp-actions">
-            <label>
-              Your name:
-              <input value={playerName} onChange={e => setPlayerName(e.target.value)} placeholder="Player name" />
-            </label>
+            <div className="player-info">
+              <span className="player-label">Player:</span>
+              <span className="player-name">{playerName}</span>
+            </div>
             <button onClick={submitPlayerSolution} disabled={loading}>Submit Solution</button>
 
             <div className="eqp-solution-info">

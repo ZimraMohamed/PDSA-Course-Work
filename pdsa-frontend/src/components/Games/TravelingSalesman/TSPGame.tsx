@@ -46,6 +46,9 @@ const TSPGame: React.FC = () => {
 
   const API_BASE_URL = 'http://localhost:5007';
   const cities = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J'];
+  
+  // Get player name from sessionStorage
+  const playerName = sessionStorage.getItem('currentPlayerName') || 'Anonymous';
 
   useEffect(() => {
     createNewGame();
@@ -197,9 +200,15 @@ const TSPGame: React.FC = () => {
       <div className="tsp-header">
         <h1>🗺️ Traveling Salesman Problem</h1>
         <p>Find the shortest route to visit selected cities and return home</p>
-        <button onClick={createNewGame} className="tsp-new-game-btn">
-          New Game
-        </button>
+        <div className="tsp-header-actions">
+          <div className="player-info">
+            <span className="player-label">Player:</span>
+            <span className="player-name">{playerName}</span>
+          </div>
+          <button onClick={createNewGame} className="tsp-new-game-btn">
+            New Game
+          </button>
+        </div>
       </div>
 
       {error && (

@@ -266,25 +266,34 @@
   align-items: stretch;
 }
 
-.eqp-actions label {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-  font-weight: 600;
-  color: #374151;
-}
-
-.eqp-actions input {
-  padding: 12px 16px;
+/* Player Info Display */
+.player-info {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 18px;
+  background: rgba(64, 224, 208, 0.08);
   border-radius: 8px;
-  border: 2px solid #e5e7eb;
-  font-size: 1rem;
-  transition: border-color 0.2s ease;
+  border: 1.5px solid rgba(64, 224, 208, 0.4);
+  -webkit-backdrop-filter: blur(10px);
+  backdrop-filter: blur(10px);
 }
 
-.eqp-actions input:focus {
-  outline: none;
-  border-color: #3b82f6;
+.player-label {
+  font-weight: 600;
+  color: #ffffff;
+  text-transform: uppercase;
+  font-size: 0.75rem;
+  letter-spacing: 0.5px;
+}
+
+.player-name {
+  font-weight: 700;
+  color: #40e0d0;
+  font-size: 1rem;
+  padding: 3px 10px;
+  background: rgba(64, 224, 208, 0.12);
+  border-radius: 6px;
 }
 
 .eqp-actions button {
