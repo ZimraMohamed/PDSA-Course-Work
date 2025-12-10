@@ -4,6 +4,7 @@ import { TSPGame } from './components/Games/TravelingSalesman';
 import { TOHPGame } from './components/Games/TowerOfHanoi';
 import { EQPGame } from './components/Games/EightQueens';
 import './AppRouter.css';
+import SnakeAndLadder from './components/Games/SnakeAndLadder/SnakeAndLadder';
 
 const ComingSoonPage = ({ title, icon }: { title: string; icon: string }) => (
   <div className="coming-soon-page">
@@ -28,7 +29,7 @@ const router = createBrowserRouter([
   },
   {
     path: '/games/snake-ladder',
-    element: <ComingSoonPage title="Snake & Ladder Game" icon="🐍" />,
+    element: <SnakeAndLadder />,
   },
   {
     path: '/games/traffic-simulation',
