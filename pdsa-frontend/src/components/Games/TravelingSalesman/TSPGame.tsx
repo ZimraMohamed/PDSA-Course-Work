@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import ConfirmDialog from '../../Common/ConfirmDialog';
+import GameResultDialog from '../../Common/GameResultDialog';
 import './TSPGame.css';
 
 interface City {
@@ -10,7 +11,7 @@ interface City {
 
 interface TSPGameRound {
   gameId: string;
-  homeCityName: string; // This will be a single character from backend, but JS treats it as string
+  homeCityName: string; 
   homeCityIndex: number;
   distanceMatrix: number[][];
   allCities: City[];
@@ -45,11 +46,11 @@ const TSPGame: React.FC = () => {
   const [validationResult, setValidationResult] = useState<any>(null);
   
   // Game progress tracking
-  const [currentRound, setCurrentRound] = useState<number>(1);
   const [passedRounds, setPassedRounds] = useState<number>(0);
   const [failedRounds, setFailedRounds] = useState<number>(0);
   const [showConfirmDialog, setShowConfirmDialog] = useState<boolean>(false);
-  const TOTAL_ROUNDS = 15;
+  const [showResultDialog, setShowResultDialog] = useState<boolean>(false);
+  const [currentResult, setCurrentResult] = useState<'pass' | 'fail' | 'draw'>('pass');
 
   const API_BASE_URL = 'http://localhost:5007';
   const cities = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J'];
@@ -62,7 +63,7 @@ const TSPGame: React.FC = () => {
   }, []);
 
   const handleBackToGames = () => {
-    if (currentRound < TOTAL_ROUNDS && (passedRounds > 0 || failedRounds > 0)) {
+    if (passedRounds > 0 || failedRounds > 0) {
       setShowConfirmDialog(true);
     } else {
       navigate('/');
@@ -79,13 +80,13 @@ const TSPGame: React.FC = () => {
   };
 
   const handleNextRound = () => {
-    if (currentRound < TOTAL_ROUNDS) {
-      setCurrentRound(prev => prev + 1);
-      createNewGame();
-    } else {
-      alert(`Game completed! You passed ${passedRounds} rounds and failed ${failedRounds} rounds.`);
-      navigate('/');
-    }
+    setShowResultDialog(false);
+    createNewGame();
+  };
+
+  const handleResultBackToGames = () => {
+    setShowResultDialog(false);
+    navigate('/');
   };
 
   const createNewGame = async () => {
@@ -192,13 +193,33 @@ const TSPGame: React.FC = () => {
       setValidationResult(data);
       setGameStatus('validated');
       
-      // Update game progress
+      // Update game progress and show result dialog
       if (data.isCorrect) {
-        setPassedRounds(prev => prev + 1);
+        const newPassed = passedRounds + 1;
+        setPassedRounds(newPassed);
+        
+        // Determine result type
+        if (newPassed === failedRounds) {
+          setCurrentResult('draw');
+        } else {
+          setCurrentResult('pass');
+        }
+        
         console.log('Answer is correct! Saving to database...');
       } else {
-        setFailedRounds(prev => prev + 1);
+        const newFailed = failedRounds + 1;
+        setFailedRounds(newFailed);
+        
+        // Determine result type
+        if (newFailed === passedRounds) {
+          setCurrentResult('draw');
+        } else {
+          setCurrentResult('fail');
+        }
       }
+      
+      // Show result dialog
+      setShowResultDialog(true);
     } catch (err) {
       setError('Failed to validate answer. Please try again.');
       console.error(err);
@@ -244,10 +265,6 @@ const TSPGame: React.FC = () => {
           </div>
           
           <div className="game-progress">
-            <div className="progress-item">
-              <span className="progress-label">Round:</span>
-              <span className="progress-value">{currentRound}/{TOTAL_ROUNDS}</span>
-            </div>
             <div className="progress-item passed">
               <span className="progress-label">Passed:</span>
               <span className="progress-value">{passedRounds}</span>
@@ -401,15 +418,9 @@ const TSPGame: React.FC = () => {
                           Correct answer: {validationResult.correctAnswer}km 
                           (Difference: {validationResult.difference}km)
                         </>
-                      )}
-                    </p>
-                  </div>
-                  
-                  <div className="tsp-next-round-section">
-                    <button onClick={handleNextRound} className="tsp-next-round-btn">
-                      {currentRound < TOTAL_ROUNDS ? 'Next Round →' : 'Finish Game'}
-                    </button>
-                  </div>
+                    )}
+                  </p>
+                </div>
                 </>
               )}
 
@@ -453,6 +464,16 @@ const TSPGame: React.FC = () => {
         cancelText="Stay"
         onConfirm={handleConfirmLeave}
         onCancel={handleCancelLeave}
+      />
+
+      {/* Game Result Dialog */}
+      <GameResultDialog
+        isOpen={showResultDialog}
+        result={currentResult}
+        onNextRound={handleNextRound}
+        onBackToGames={handleResultBackToGames}
+        passedCount={passedRounds}
+        failedCount={failedRounds}
       />
     </div>
   );
