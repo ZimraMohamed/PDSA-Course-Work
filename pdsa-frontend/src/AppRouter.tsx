@@ -1,6 +1,8 @@
 import { createBrowserRouter, RouterProvider } from 'react-router-dom';
 import App from './App';
 import { TSPGame } from './components/Games/TravelingSalesman';
+import {TrafficGame} from './components/Games/TrafficSimulation';
+
 import './AppRouter.css';
 
 const ComingSoonPage = ({ title, icon }: { title: string; icon: string }) => (
@@ -26,7 +28,7 @@ const router = createBrowserRouter([
   },
   {
     path: '/games/traffic-simulation',
-    element: <ComingSoonPage title="Traffic Simulation Game" icon="🚦" />,
+    element: <TrafficGame />,
   },
   {
     path: '/games/tower-of-hanoi',

@@ -1,0 +1,29 @@
+.traffic-container {
+  padding: 20px;
+}
+
+.graph-container {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  margin: 20px 0;
+  gap: 10px;
+}
+
+.edge-box {
+  padding: 10px;
+  border-radius: 6px;
+  background: #906565;
+  text-align: center;
+  font-weight: bold;
+}
+
+.input-box {
+  margin-top: 20px;
+}
+
+.result-box {
+  background: #259925;
+  padding: 20px;
+  margin-top: 20px;
+  border-radius: 8px;
+}
