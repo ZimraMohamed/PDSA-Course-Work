@@ -1,10 +1,16 @@
+import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import Preloader from './components/Common/Preloader'
+import PlayerNameModal from './components/Common/PlayerNameModal'
 import { usePreloader } from './hooks/usePreloader'
 import brainGif from './assets/brain.gif'
 import './App.css'
 
 function App() {
+  const navigate = useNavigate();
   const { isLoading, progress } = usePreloader();
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [selectedGame, setSelectedGame] = useState<{ route: string; name: string } | null>(null);
 
   const handlePreloaderComplete = () => {
     console.log('Preloader completed, app is ready!');
@@ -15,8 +21,24 @@ function App() {
     gamesSection?.scrollIntoView({ behavior: 'smooth', block: 'start' });
   };
 
-  const navigateToGame = (gameRoute: string) => {
-    window.location.href = gameRoute;
+  const navigateToGame = (gameRoute: string, gameName: string) => {
+    setSelectedGame({ route: gameRoute, name: gameName });
+    setIsModalOpen(true);
+  };
+
+  const handleModalClose = () => {
+    setIsModalOpen(false);
+    setSelectedGame(null);
+  };
+
+  const handlePlayerNameSubmit = (playerName: string) => {
+    if (selectedGame) {
+      // Store player name and navigate
+      sessionStorage.setItem('currentPlayerName', playerName);
+      navigate(selectedGame.route, { state: { playerName } });
+      setIsModalOpen(false);
+      setSelectedGame(null);
+    }
   };
 
   if (isLoading) {
@@ -71,7 +93,7 @@ function App() {
               <span className="tag">BFS</span>
               <span className="tag">Dynamic Programming</span>
             </div>
-            <button className="game-button" onClick={() => navigateToGame('/games/snake-ladder')}>Play Now</button>
+            <button className="game-button" onClick={() => navigateToGame('/games/snake-ladder', 'Snake & Ladder')}>Play Now</button>
           </div>
           
           <div className="game-card">
@@ -82,7 +104,7 @@ function App() {
               <span className="tag">Graph Theory</span>
               <span className="tag">Max Flow</span>
             </div>
-            <button className="game-button" onClick={() => navigateToGame('/games/traffic-simulation')}>Play Now</button>
+            <button className="game-button" onClick={() => navigateToGame('/games/traffic-simulation', 'Traffic Simulation')}>Play Now</button>
           </div>
           
           <div className="game-card">
@@ -93,7 +115,7 @@ function App() {
               <span className="tag">Optimization</span>
               <span className="tag">NP-Hard</span>
             </div>
-            <button className="game-button" onClick={() => navigateToGame('/games/tsp')}>Play Now</button>
+            <button className="game-button" onClick={() => navigateToGame('/games/tsp', 'Traveling Salesman')}>Play Now</button>
           </div>
           
           <div className="game-card">
@@ -104,7 +126,7 @@ function App() {
               <span className="tag">Recursion</span>
               <span className="tag">Stack</span>
             </div>
-            <button className="game-button" onClick={() => navigateToGame('/games/tower-of-hanoi')}>Play Now</button>
+            <button className="game-button" onClick={() => navigateToGame('/games/tower-of-hanoi', 'Tower of Hanoi')}>Play Now</button>
           </div>
           
           <div className="game-card">
@@ -115,7 +137,7 @@ function App() {
               <span className="tag">Backtracking</span>
               <span className="tag">Constraint Satisfaction</span>
             </div>
-            <button className="game-button" onClick={() => navigateToGame('/games/eight-queens')}>Play Now</button>
+            <button className="game-button" onClick={() => navigateToGame('/games/eight-queens', 'Eight Queens')}>Play Now</button>
           </div>
         </div>
         </div>
@@ -150,6 +172,16 @@ function App() {
           <p>&copy; 2025 PDSA Gaming Platform. Built for educational purposes.</p>
         </div>
       </footer>
+
+      {/* Player Name Modal */}
+      {isModalOpen && selectedGame && (
+        <PlayerNameModal
+          isOpen={isModalOpen}
+          onClose={handleModalClose}
+          onSubmit={handlePlayerNameSubmit}
+          gameName={selectedGame.name}
+        />
+      )}
     </div>
   )
 }

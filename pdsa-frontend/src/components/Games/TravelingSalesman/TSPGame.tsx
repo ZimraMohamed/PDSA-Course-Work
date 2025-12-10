@@ -1,5 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import './TSPGame.css';
+import { useNavigate } from 'react-router-dom';
+import ConfirmDialog from '../../Common/ConfirmDialog';
+import GameResultDialog from '../../Common/GameResultDialog';
 import './TSPGame.css';
 
 interface City {
@@ -9,7 +11,7 @@ interface City {
 
 interface TSPGameRound {
   gameId: string;
-  homeCityName: string; // This will be a single character from backend, but JS treats it as string
+  homeCityName: string; 
   homeCityIndex: number;
   distanceMatrix: number[][];
   allCities: City[];
@@ -33,6 +35,7 @@ interface TSPSolution {
 }
 
 const TSPGame: React.FC = () => {
+  const navigate = useNavigate();
   const [gameRound, setGameRound] = useState<TSPGameRound | null>(null);
   const [selectedCities, setSelectedCities] = useState<string[]>([]);
   const [solution, setSolution] = useState<TSPSolution | null>(null);
@@ -41,13 +44,50 @@ const TSPGame: React.FC = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string>('');
   const [validationResult, setValidationResult] = useState<any>(null);
+  
+  // Game progress tracking
+  const [passedRounds, setPassedRounds] = useState<number>(0);
+  const [failedRounds, setFailedRounds] = useState<number>(0);
+  const [showConfirmDialog, setShowConfirmDialog] = useState<boolean>(false);
+  const [showResultDialog, setShowResultDialog] = useState<boolean>(false);
+  const [currentResult, setCurrentResult] = useState<'pass' | 'fail' | 'draw'>('pass');
 
   const API_BASE_URL = 'http://localhost:5007';
   const cities = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J'];
+  
+  // Get player name from sessionStorage
+  const playerName = sessionStorage.getItem('currentPlayerName') || 'Anonymous';
 
   useEffect(() => {
     createNewGame();
   }, []);
+
+  const handleBackToGames = () => {
+    if (passedRounds > 0 || failedRounds > 0) {
+      setShowConfirmDialog(true);
+    } else {
+      navigate('/');
+    }
+  };
+
+  const handleConfirmLeave = () => {
+    setShowConfirmDialog(false);
+    navigate('/');
+  };
+
+  const handleCancelLeave = () => {
+    setShowConfirmDialog(false);
+  };
+
+  const handleNextRound = () => {
+    setShowResultDialog(false);
+    createNewGame();
+  };
+
+  const handleResultBackToGames = () => {
+    setShowResultDialog(false);
+    navigate('/');
+  };
 
   const createNewGame = async () => {
     setLoading(true);
@@ -153,11 +193,33 @@ const TSPGame: React.FC = () => {
       setValidationResult(data);
       setGameStatus('validated');
       
-      // TODO: Save result to database if correct
+      // Update game progress and show result dialog
       if (data.isCorrect) {
-        // Save player result to database
+        const newPassed = passedRounds + 1;
+        setPassedRounds(newPassed);
+        
+        // Determine result type
+        if (newPassed === failedRounds) {
+          setCurrentResult('draw');
+        } else {
+          setCurrentResult('pass');
+        }
+        
         console.log('Answer is correct! Saving to database...');
+      } else {
+        const newFailed = failedRounds + 1;
+        setFailedRounds(newFailed);
+        
+        // Determine result type
+        if (newFailed === passedRounds) {
+          setCurrentResult('draw');
+        } else {
+          setCurrentResult('fail');
+        }
       }
+      
+      // Show result dialog
+      setShowResultDialog(true);
     } catch (err) {
       setError('Failed to validate answer. Please try again.');
       console.error(err);
@@ -187,7 +249,7 @@ const TSPGame: React.FC = () => {
   return (
     <div className="tsp-game">
       <div className="tsp-nav">
-        <button onClick={() => window.location.href = '/'} className="tsp-back-btn">
+        <button onClick={handleBackToGames} className="tsp-back-btn">
           ← Back to Games
         </button>
       </div>
@@ -195,9 +257,24 @@ const TSPGame: React.FC = () => {
       <div className="tsp-header">
         <h1>🗺️ Traveling Salesman Problem</h1>
         <p>Find the shortest route to visit selected cities and return home</p>
-        <button onClick={createNewGame} className="tsp-new-game-btn">
-          New Game
-        </button>
+        
+        <div className="tsp-game-stats">
+          <div className="player-info">
+            <span className="player-label">Player:</span>
+            <span className="player-name">{playerName}</span>
+          </div>
+          
+          <div className="game-progress">
+            <div className="progress-item passed">
+              <span className="progress-label">Passed:</span>
+              <span className="progress-value">{passedRounds}</span>
+            </div>
+            <div className="progress-item failed">
+              <span className="progress-label">Failed:</span>
+              <span className="progress-value">{failedRounds}</span>
+            </div>
+          </div>
+        </div>
       </div>
 
       {error && (
@@ -267,29 +344,41 @@ const TSPGame: React.FC = () => {
             <div className="tsp-card-content">
               <div className="tsp-distance-matrix">
                 <table className="tsp-matrix-table">
-                  <thead>
-                    <tr>
-                      <th></th>
-                      {selectedCities.map(city => (
-                        <th key={city}>{city}</th>
-                      ))}
-                    </tr>
-                  </thead>
                   <tbody>
-                    {selectedCities.map(fromCity => (
+                    {selectedCities.map((fromCity, fromIndex) => (
                       <tr key={fromCity}>
-                        <td className="tsp-matrix-header">{fromCity}</td>
-                        {selectedCities.map(toCity => (
-                          <td key={`${fromCity}-${toCity}`} className="tsp-matrix-cell">
-                            {fromCity === toCity ? '--' : 
-                             getDistanceDisplay(
-                               gameRound.allCities.find(c => c.name === fromCity)?.index || 0,
-                               gameRound.allCities.find(c => c.name === toCity)?.index || 0
-                             )}
-                          </td>
-                        ))}
+                        <td className="tsp-matrix-header">City {fromCity}</td>
+                        {selectedCities.map((toCity, toIndex) => {
+                          if (toIndex < fromIndex) {
+                            return (
+                              <td key={`${fromCity}-${toCity}`} className="tsp-matrix-cell">
+                                {getDistanceDisplay(
+                                  gameRound.allCities.find(c => c.name === fromCity)?.index || 0,
+                                  gameRound.allCities.find(c => c.name === toCity)?.index || 0
+                                )}
+                              </td>
+                            );
+                          }
+                          if (toIndex === fromIndex) {
+                            return (
+                              <td key={`${fromCity}-${toCity}`} className="tsp-matrix-cell">
+                                ---
+                              </td>
+                            );
+                          }
+                          return (
+                            <td key={`${fromCity}-${toCity}`} className="tsp-matrix-cell tsp-matrix-empty">
+                            </td>
+                          );
+                        })}
                       </tr>
                     ))}
+                    <tr className="tsp-matrix-footer">
+                      <td></td>
+                      {selectedCities.map(city => (
+                        <td key={city} className="tsp-matrix-footer-cell">City {city}</td>
+                      ))}
+                    </tr>
                   </tbody>
                 </table>
               </div>
@@ -328,21 +417,23 @@ const TSPGame: React.FC = () => {
           {solution && gameStatus === 'validated' && (
             <div className="tsp-results">
               {validationResult && (
-                <div className={`tsp-validation ${validationResult.isCorrect ? 'correct' : 'incorrect'}`}>
-                  <p>
-                    {validationResult.isCorrect ? (
-                      <>
-                        🎉 Correct! Your answer of {validationResult.userAnswer}km is within {validationResult.toleranceUsed}% of the optimal solution.
-                      </>
-                    ) : (
-                      <>
-                        ❌ Incorrect. Your answer: {validationResult.userAnswer}km, 
-                        Correct answer: {validationResult.correctAnswer}km 
-                        (Difference: {validationResult.difference}km)
-                      </>
+                <>
+                  <div className={`tsp-validation ${validationResult.isCorrect ? 'correct' : 'incorrect'}`}>
+                    <p>
+                      {validationResult.isCorrect ? (
+                        <>
+                          🎉 Correct! Your answer of {validationResult.userAnswer}km is within {validationResult.toleranceUsed}% of the optimal solution.
+                        </>
+                      ) : (
+                        <>
+                          ❌ Incorrect. Your answer: {validationResult.userAnswer}km, 
+                          Correct answer: {validationResult.correctAnswer}km 
+                          (Difference: {validationResult.difference}km)
+                        </>
                     )}
                   </p>
                 </div>
+                </>
               )}
 
               <div className="tsp-solution-card">
@@ -375,6 +466,29 @@ const TSPGame: React.FC = () => {
           )}
         </div>
       )}
+
+      {/* Confirm Dialog */}
+      <ConfirmDialog
+        isOpen={showConfirmDialog}
+        title="Leave Game?"
+        message="Are you sure you want to leave? Your game progress will be lost."
+        confirmText="Leave"
+        cancelText="Stay"
+        onConfirm={handleConfirmLeave}
+        onCancel={handleCancelLeave}
+      />
+
+      {/* Game Result Dialog */}
+      <GameResultDialog
+        isOpen={showResultDialog}
+        result={currentResult}
+        onNextRound={handleNextRound}
+        onBackToGames={handleResultBackToGames}
+        passedCount={passedRounds}
+        failedCount={failedRounds}
+        userAnswer={userAnswer}
+        correctAnswer={solution?.optimalDistance}
+      />
     </div>
   );
 };
