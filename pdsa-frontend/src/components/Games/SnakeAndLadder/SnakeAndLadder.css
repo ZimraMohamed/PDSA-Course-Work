@@ -1,7 +1,8 @@
 .sal-game {
-  max-width: 760px;
+  padding: 20px;
+  max-width: 1400px;
   margin: 18px auto;
-  padding: 18px;
+  min-height: 100vh;
   border-radius: 8px;
   background: #ffffff;
   box-shadow: 0 6px 18px rgba(0,0,0,0.06);
@@ -9,14 +10,50 @@
   color: #1f2937;
 }
 
-.sal-header h2 {
-  margin: 0 0 6px 0;
-  font-size: 20px;
+/* Navigation */
+.sal-nav {
+  margin-bottom: 20px;
 }
+
+.sal-back-btn {
+  background: #6b7280;
+  border: none;
+  color: white;
+  padding: 10px 20px;
+  border-radius: 6px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  text-decoration: none;
+  display: inline-block;
+}
+
+.sal-back-btn:hover {
+  background: #4b5563;
+  transform: translateY(-1px);
+}
+
+/* Header Section */
+.sal-header {
+  text-align: center;
+  margin-bottom: 30px;
+  padding: 20px;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  border-radius: 15px;
+  color: white;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+}
+
+.sal-header h2 {
+  margin: 0 0 10px 0;
+  font-size: 2rem;
+  font-weight: 700;
+}
+
 .sal-header p {
-  margin: 0 0 12px 0;
-  color: #4b5563;
-  font-size: 13px;
+  margin: 0 0 20px 0;
+  font-size: 1.05rem;
+  opacity: 0.95;
 }
 
 .sal-setup {
