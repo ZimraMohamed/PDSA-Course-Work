@@ -40,6 +40,7 @@ const TSPGame: React.FC = () => {
   const [selectedCities, setSelectedCities] = useState<string[]>([]);
   const [solution, setSolution] = useState<TSPSolution | null>(null);
   const [userAnswer, setUserAnswer] = useState<string>('');
+  const [userRoute, setUserRoute] = useState<string[]>([]);
   const [gameStatus, setGameStatus] = useState<'setup' | 'playing' | 'solved' | 'validated'>('setup');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string>('');
@@ -81,6 +82,8 @@ const TSPGame: React.FC = () => {
 
   const handleNextRound = () => {
     setShowResultDialog(false);
+    setUserRoute([]);
+    setUserAnswer('');
     createNewGame();
   };
 
@@ -107,6 +110,7 @@ const TSPGame: React.FC = () => {
       setSolution(null);
       setValidationResult(null);
       setUserAnswer('');
+      setUserRoute([]);
     } catch (err) {
       setError('Failed to create new game. Please try again.');
       console.error(err);
@@ -162,14 +166,13 @@ const TSPGame: React.FC = () => {
   };
 
   const validateAnswer = async () => {
-    if (!solution || !userAnswer) {
-      setError('Please enter your answer');
+    if (!solution || userRoute.length === 0) {
+      setError('Please enter your route');
       return;
     }
 
-    const userAnswerNum = parseInt(userAnswer);
-    if (isNaN(userAnswerNum) || userAnswerNum <= 0) {
-      setError('Please enter a valid positive number');
+    if (userRoute.length !== selectedCities.length) {
+      setError(`Route must include all ${selectedCities.length} selected cities`);
       return;
     }
 
@@ -177,11 +180,15 @@ const TSPGame: React.FC = () => {
     setError('');
     
     try {
+      // Calculate user's route distance
+      const userDistance = calculateRouteDistance(userRoute);
+      const isRouteCorrect = JSON.stringify(userRoute) === JSON.stringify(solution.optimalRoute);
+      
       const response = await fetch(`${API_BASE_URL}/api/tsp/validate-answer`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          userAnswer: userAnswerNum,
+          userAnswer: userDistance,
           correctAnswer: solution.optimalDistance,
           tolerancePercentage: 5
         })
@@ -193,8 +200,11 @@ const TSPGame: React.FC = () => {
       setValidationResult(data);
       setGameStatus('validated');
       
+      // Store formatted route for display
+      setUserAnswer(formatRoute(userRoute));
+      
       // Update game progress and show result dialog
-      if (data.isCorrect) {
+      if (data.isCorrect || isRouteCorrect) {
         const newPassed = passedRounds + 1;
         setPassedRounds(newPassed);
         
@@ -235,6 +245,30 @@ const TSPGame: React.FC = () => {
 
   const formatRoute = (route: string[]): string => {
     return route.join(' → ') + ' → ' + route[0];
+  };
+
+  const calculateRouteDistance = (route: string[]): number => {
+    if (!gameRound || route.length === 0) return 0;
+    
+    let totalDistance = 0;
+    
+    // Distance from home to first city
+    const firstCityIndex = gameRound.allCities.find(c => c.name === route[0])?.index || 0;
+    const homeIndex = gameRound.homeCityIndex;
+    totalDistance += gameRound.distanceMatrix[homeIndex][firstCityIndex];
+    
+    // Distance between consecutive cities in route
+    for (let i = 0; i < route.length - 1; i++) {
+      const fromIndex = gameRound.allCities.find(c => c.name === route[i])?.index || 0;
+      const toIndex = gameRound.allCities.find(c => c.name === route[i + 1])?.index || 0;
+      totalDistance += gameRound.distanceMatrix[fromIndex][toIndex];
+    }
+    
+    // Distance from last city back to home
+    const lastCityIndex = gameRound.allCities.find(c => c.name === route[route.length - 1])?.index || 0;
+    totalDistance += gameRound.distanceMatrix[lastCityIndex][homeIndex];
+    
+    return totalDistance;
   };
 
   if (loading && !gameRound) {
@@ -347,7 +381,7 @@ const TSPGame: React.FC = () => {
                   <tbody>
                     {selectedCities.map((fromCity, fromIndex) => (
                       <tr key={fromCity}>
-                        <td className="tsp-matrix-header">City {fromCity}</td>
+                        <td className="tsp-matrix-header">{fromCity}</td>
                         {selectedCities.map((toCity, toIndex) => {
                           if (toIndex < fromIndex) {
                             return (
@@ -376,7 +410,7 @@ const TSPGame: React.FC = () => {
                     <tr className="tsp-matrix-footer">
                       <td></td>
                       {selectedCities.map(city => (
-                        <td key={city} className="tsp-matrix-footer-cell">City {city}</td>
+                        <td key={city} className="tsp-matrix-footer-cell">{city}</td>
                       ))}
                     </tr>
                   </tbody>
@@ -390,23 +424,97 @@ const TSPGame: React.FC = () => {
             <div className="tsp-answer-card">
               <div className="tsp-card-header">
                 <h3>Your Answer</h3>
-                <p>What is the shortest total distance for this route?</p>
+                <p>Build the shortest route starting from <strong>{gameRound?.homeCityName}</strong> visiting all selected cities exactly once and returning home</p>
               </div>
               <div className="tsp-card-content">
                 <div className="tsp-answer-input">
-                  <label htmlFor="user-answer">Shortest Distance (km):</label>
-                  <div className="tsp-input-group">
-                    <input
-                      id="user-answer"
-                      type="number"
-                      value={userAnswer}
-                      onChange={(e: React.ChangeEvent<HTMLInputElement>) => setUserAnswer(e.target.value)}
-                      placeholder="Enter distance in km"
-                      min="1"
-                    />
-                    <button onClick={validateAnswer} disabled={loading}>
-                      {loading ? 'Checking...' : 'Submit'}
-                    </button>
+                  <label>Click cities in order to build your route:</label>
+                  <div className="tsp-route-input-container">
+                    <div className="tsp-route-preview">
+                      <span className="route-home">{gameRound?.homeCityName}</span>
+                      {userRoute.length > 0 && (
+                        <>
+                          <span className="route-arrow">→</span>
+                          {userRoute.map((city, index) => (
+                            <React.Fragment key={index}>
+                              <span 
+                                className="route-city clickable"
+                                onClick={() => {
+                                  const newRoute = userRoute.filter((_, i) => i !== index);
+                                  setUserRoute(newRoute);
+                                }}
+                                title="Click to remove"
+                              >
+                                {city} ×
+                              </span>
+                              {index < userRoute.length - 1 && <span className="route-arrow">→</span>}
+                            </React.Fragment>
+                          ))}
+                          <span className="route-arrow">→</span>
+                          <span className="route-home">{gameRound?.homeCityName}</span>
+                        </>
+                      )}
+                      {userRoute.length === 0 && (
+                        <span className="route-placeholder">Click cities below to start building your route</span>
+                      )}
+                    </div>
+                    
+                    <div className="tsp-route-builder">
+                      <div className="route-cities-grid">
+                        {selectedCities.map(city => {
+                          const isInRoute = userRoute.includes(city);
+                          const canAdd = !isInRoute;
+                          return (
+                            <button
+                              key={city}
+                              className={`route-city-btn ${isInRoute ? 'in-route' : ''} ${!canAdd ? 'disabled' : ''}`}
+                              onClick={() => {
+                                if (canAdd) {
+                                  setUserRoute([...userRoute, city]);
+                                }
+                              }}
+                              disabled={!canAdd}
+                            >
+                              <span className="city-letter-large">{city}</span>
+                              {isInRoute && <span className="city-order">#{userRoute.indexOf(city) + 1}</span>}
+                            </button>
+                          );
+                        })}
+                      </div>
+                    </div>
+
+                    {userRoute.length > 0 && (
+                      <div className="tsp-route-info">
+                        <span className="info-label">Cities in your route:</span>
+                        <span className="info-value">{userRoute.length} / {selectedCities.length}</span>
+                        <span className="info-separator">•</span>
+                        <span className="info-label">Total distance:</span>
+                        <span className="info-value">{calculateRouteDistance(userRoute)} km</span>
+                        {userRoute.length < selectedCities.length && (
+                          <>
+                            <span className="info-separator">•</span>
+                            <span className="info-warning">Add {selectedCities.length - userRoute.length} more city(s)</span>
+                          </>
+                        )}
+                      </div>
+                    )}
+
+                    <div className="tsp-route-actions">
+                      <button 
+                        className="clear-route-btn" 
+                        onClick={() => setUserRoute([])}
+                        disabled={userRoute.length === 0}
+                      >
+                        Clear Route
+                      </button>
+                      <button 
+                        className="submit-route-btn"
+                        onClick={validateAnswer} 
+                        disabled={loading || userRoute.length !== selectedCities.length}
+                      >
+                        {loading ? 'Checking...' : 'Submit Route'}
+                      </button>
+                    </div>
                   </div>
                 </div>
               </div>
@@ -487,7 +595,7 @@ const TSPGame: React.FC = () => {
         passedCount={passedRounds}
         failedCount={failedRounds}
         userAnswer={userAnswer}
-        correctAnswer={solution?.optimalDistance}
+        correctAnswer={solution ? formatRoute(solution.optimalRoute) : ''}
       />
     </div>
   );
