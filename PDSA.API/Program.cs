@@ -1,6 +1,8 @@
 using Microsoft.EntityFrameworkCore;
 using PDSA.API.Data;
 using PDSA.Core.Algorithms.TravelingSalesman;
+using PDSA.Core.Algorithms.TrafficSimulation;
+
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -15,6 +17,8 @@ builder.Services.AddDbContext<PDSADbContext>(options =>
 
 // Add our services
 builder.Services.AddScoped<TSPGameService>();
+builder.Services.AddScoped<TrafficGameService>();
+
 
 // Add CORS for frontend
 builder.Services.AddCors(options =>
@@ -49,3 +53,4 @@ app.UseAuthorization();
 app.MapControllers();
 
 app.Run();
+
