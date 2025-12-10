@@ -1,0 +1,267 @@
+.tohp-game {
+  padding: 20px;
+  max-width: 1400px;
+  margin: 0 auto;
+  min-height: 100vh;
+}
+
+/* Navigation */
+.tohp-nav {
+  margin-bottom: 20px;
+}
+
+.tohp-back-btn {
+  background: #6b7280;
+  border: none;
+  color: white;
+  padding: 10px 20px;
+  border-radius: 6px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  text-decoration: none;
+  display: inline-block;
+}
+
+.tohp-back-btn:hover {
+  background: #4b5563;
+  transform: translateY(-1px);
+}
+
+/* Header Section */
+.tohp-header {
+  text-align: center;
+  margin-bottom: 30px;
+  padding: 20px;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  border-radius: 15px;
+  color: white;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+}
+
+.tohp-header h1 {
+  margin: 0 0 10px 0;
+  font-size: 2.5rem;
+  font-weight: 700;
+}
+
+.tohp-header p {
+  margin: 0 0 20px 0;
+  font-size: 1.2rem;
+  opacity: 0.9;
+}
+
+.tohp-new-game-btn {
+  background: rgba(255, 255, 255, 0.2);
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  color: white;
+  padding: 12px 24px;
+  border-radius: 8px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.tohp-new-game-btn:hover {
+  background: rgba(255, 255, 255, 0.3);
+  border-color: rgba(255, 255, 255, 0.5);
+  transform: translateY(-2px);
+}
+
+/* Setup & inputs */
+.tohp-setup {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20px;
+}
+
+.tohp-card {
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+  border: 1px solid #e5e7eb;
+  overflow: hidden;
+}
+
+.tsp-card-content input[type="number"],
+.tsp-card-content select,
+.tsp-card-content textarea {
+  padding: 10px 12px;
+  border: 2px solid #e5e7eb;
+  border-radius: 8px;
+  background: white;
+  font-size: 1rem;
+  color: #111827;
+}
+
+/* TSP-style card header/content to match TravelingSalesman look */
+.tsp-setup-card {
+  margin-top: 0;
+}
+
+.tsp-card-header {
+  padding: 20px 24px;
+  background: #f8fafc;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.tsp-card-header h3 {
+  margin: 0 0 5px 0;
+  font-size: 1.25rem;
+  color: #1f2937;
+  font-weight: 600;
+}
+
+.tsp-card-content {
+  padding: 24px;
+}
+
+.tsp-input-row {
+  margin-top: 8px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.tsp-input-row + .tsp-input-row {
+  margin-top: 12px;
+}
+
+.tohp-disk-count {
+  padding: 8px 12px;
+  background: #f3f4f6;
+  border-radius: 8px;
+  font-weight: 600;
+}
+
+.tohp-start-btn {
+  background: #6b7280;
+  border: none;
+  color: white;
+  padding: 8px 16px;
+  border-radius: 6px;
+  font-weight: 500;
+  cursor: pointer;
+  margin-right: 8px;
+}
+
+.tohp-result {
+  margin-top: 12px;
+  padding: 12px;
+  border-radius: 8px;
+  font-weight: 600;
+}
+
+.tohp-result.correct {
+  background: #d1fae5;
+  color: #065f46;
+}
+
+.tohp-result.incorrect {
+  background: #fee2e2;
+  color: #991b1b;
+}
+
+@media (max-width: 900px) {
+  .tohp-setup {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* Button variants */
+.tohp-check-btn {
+  background: #10b981; /* green */
+}
+.tohp-check-btn:hover {
+  background: #059669;
+  transform: translateY(-1px);
+}
+
+/* Ensure card text and inputs are darker on white backgrounds */
+.tohp-card,
+.tsp-card-content,
+.tsp-card-header {
+  color: #111827;
+}
+
+.tsp-card-content label {
+  color: #111827;
+  font-weight: 600;
+}
+
+.tsp-card-content input,
+.tsp-card-content textarea,
+.tsp-card-content select {
+  color: #111827;
+}
+
+/* Modal popup for name entry */
+.tohp-modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.45);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 60;
+}
+.tohp-modal {
+  background: #ffffff;
+  padding: 20px;
+  border-radius: 12px;
+  width: 100%;
+  max-width: 420px;
+  box-shadow: 0 12px 40px rgba(2, 6, 23, 0.12);
+}
+.tohp-modal h3 {
+  margin: 0 0 12px 0;
+  color: black;
+}
+.tohp-name-input {
+  width: 100%;
+  padding: 10px 12px;
+  border: 2px solid #e5e7eb;
+  border-radius: 8px;
+  margin-bottom: 12px;
+}
+.tohp-modal-actions {
+  display: flex;
+  gap: 8px;
+  justify-content: flex-end;
+}
+
+/* Modal button variants */
+.tohp-modal-actions .tohp-submit-btn {
+  background: #10b981; /* green */
+  border: none;
+  color: white;
+  padding: 8px 14px;
+  border-radius: 8px;
+  font-weight: 600;
+  transition: background 0.15s ease, transform 0.08s ease;
+}
+.tohp-modal-actions .tohp-submit-btn:hover {
+  background: #059669; /* darker green */
+  transform: translateY(-1px);
+}
+
+.tohp-modal-actions .tohp-cancel-btn {
+  background: #ef4444; /* red */
+  border: none;
+  color: white;
+  padding: 8px 14px;
+  border-radius: 8px;
+  font-weight: 600;
+  transition: background 0.15s ease, transform 0.08s ease;
+}
+.tohp-modal-actions .tohp-cancel-btn:hover {
+  background: #dc2626; /* darker red */
+  transform: translateY(-1px);
+}
+
+/* Light themed name input */
+.tohp-name-input {
+  background: #fbfdff;
+  border: 1px solid #e6eef6;
+  color: #0f172a;
+}
