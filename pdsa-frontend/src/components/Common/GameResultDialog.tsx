@@ -8,6 +8,8 @@ interface GameResultDialogProps {
   onBackToGames: () => void;
   passedCount: number;
   failedCount: number;
+  userAnswer?: string | number;
+  correctAnswer?: string | number;
 }
 
 const GameResultDialog: React.FC<GameResultDialogProps> = ({
@@ -16,7 +18,9 @@ const GameResultDialog: React.FC<GameResultDialogProps> = ({
   onNextRound,
   onBackToGames,
   passedCount,
-  failedCount
+  failedCount,
+  userAnswer,
+  correctAnswer
 }) => {
   if (!isOpen) return null;
 
@@ -61,6 +65,22 @@ const GameResultDialog: React.FC<GameResultDialogProps> = ({
         <div className="game-result-icon">{content.icon}</div>
         <h2 className="game-result-title">{content.title}</h2>
         <p className="game-result-message">{content.message}</p>
+        
+        {result === 'fail' && userAnswer !== undefined && correctAnswer !== undefined && (
+          <div className="game-result-answers">
+            <div className="answer-comparison">
+              <div className="answer-item user-answer">
+                <span className="answer-label">Your Answer:</span>
+                <span className="answer-value">{userAnswer}</span>
+              </div>
+              <div className="answer-divider">≠</div>
+              <div className="answer-item correct-answer">
+                <span className="answer-label">Correct Answer:</span>
+                <span className="answer-value">{correctAnswer}</span>
+              </div>
+            </div>
+          </div>
+        )}
         
         <div className="game-result-stats">
           <div className="result-stat success">

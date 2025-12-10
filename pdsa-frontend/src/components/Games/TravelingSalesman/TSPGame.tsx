@@ -344,29 +344,41 @@ const TSPGame: React.FC = () => {
             <div className="tsp-card-content">
               <div className="tsp-distance-matrix">
                 <table className="tsp-matrix-table">
-                  <thead>
-                    <tr>
-                      <th></th>
-                      {selectedCities.map(city => (
-                        <th key={city}>{city}</th>
-                      ))}
-                    </tr>
-                  </thead>
                   <tbody>
-                    {selectedCities.map(fromCity => (
+                    {selectedCities.map((fromCity, fromIndex) => (
                       <tr key={fromCity}>
-                        <td className="tsp-matrix-header">{fromCity}</td>
-                        {selectedCities.map(toCity => (
-                          <td key={`${fromCity}-${toCity}`} className="tsp-matrix-cell">
-                            {fromCity === toCity ? '--' : 
-                             getDistanceDisplay(
-                               gameRound.allCities.find(c => c.name === fromCity)?.index || 0,
-                               gameRound.allCities.find(c => c.name === toCity)?.index || 0
-                             )}
-                          </td>
-                        ))}
+                        <td className="tsp-matrix-header">City {fromCity}</td>
+                        {selectedCities.map((toCity, toIndex) => {
+                          if (toIndex < fromIndex) {
+                            return (
+                              <td key={`${fromCity}-${toCity}`} className="tsp-matrix-cell">
+                                {getDistanceDisplay(
+                                  gameRound.allCities.find(c => c.name === fromCity)?.index || 0,
+                                  gameRound.allCities.find(c => c.name === toCity)?.index || 0
+                                )}
+                              </td>
+                            );
+                          }
+                          if (toIndex === fromIndex) {
+                            return (
+                              <td key={`${fromCity}-${toCity}`} className="tsp-matrix-cell">
+                                ---
+                              </td>
+                            );
+                          }
+                          return (
+                            <td key={`${fromCity}-${toCity}`} className="tsp-matrix-cell tsp-matrix-empty">
+                            </td>
+                          );
+                        })}
                       </tr>
                     ))}
+                    <tr className="tsp-matrix-footer">
+                      <td></td>
+                      {selectedCities.map(city => (
+                        <td key={city} className="tsp-matrix-footer-cell">City {city}</td>
+                      ))}
+                    </tr>
                   </tbody>
                 </table>
               </div>
@@ -474,6 +486,8 @@ const TSPGame: React.FC = () => {
         onBackToGames={handleResultBackToGames}
         passedCount={passedRounds}
         failedCount={failedRounds}
+        userAnswer={userAnswer}
+        correctAnswer={solution?.optimalDistance}
       />
     </div>
   );
