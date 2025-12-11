@@ -150,6 +150,7 @@
   padding: 12px;
   border-radius: 8px;
   font-weight: 600;
+  white-space: pre-line;
 }
 
 .tohp-result.correct {
