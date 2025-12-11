@@ -14,6 +14,7 @@ const TOHPGame: React.FC = () => {
   const [userSequence, setUserSequence] = useState<string>("");
   const [userAnswer, setUserAnswer] = useState<string>("");
   const [correctAnswer, setCorrectAnswer] = useState<string>("");
+  const [recordedMoves, setRecordedMoves] = useState<string[]>([]);
 
   // Game progress tracking
   const [passedRounds, setPassedRounds] = useState<number>(0);
@@ -34,6 +35,8 @@ const TOHPGame: React.FC = () => {
     pegIndex: number;
     size: number;
   } | null>(null);
+
+  const [isAnimating, setIsAnimating] = useState<boolean>(false);
 
   // Initialize pegs whenever numPegs or numDisks changes
   useEffect(() => {
@@ -79,7 +82,43 @@ const TOHPGame: React.FC = () => {
     setNumDisks(newCount);
     setUserMovesCount("");
     setUserSequence("");
+    setRecordedMoves([]);
     console.log(`New game generated with ${newCount} disks.`);
+  };
+
+  const incrementMoves = () => {
+    const current = parseInt(userMovesCount) || 0;
+    setUserMovesCount((current + 1).toString());
+  };
+
+  const decrementMoves = () => {
+    const current = parseInt(userMovesCount) || 0;
+    if (current > 0) {
+      setUserMovesCount((current - 1).toString());
+    }
+  };
+
+  const addMoveToSequence = (from: string, to: string) => {
+    const move = `${from}→${to}`;
+    const newMoves = [...recordedMoves, move];
+    setRecordedMoves(newMoves);
+    setUserSequence(newMoves.join(", "));
+    incrementMoves();
+  };
+
+  const removeLastMove = () => {
+    if (recordedMoves.length > 0) {
+      const newMoves = recordedMoves.slice(0, -1);
+      setRecordedMoves(newMoves);
+      setUserSequence(newMoves.join(", "));
+      decrementMoves();
+    }
+  };
+
+  const clearMoves = () => {
+    setRecordedMoves([]);
+    setUserSequence("");
+    setUserMovesCount("");
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -154,6 +193,8 @@ const TOHPGame: React.FC = () => {
 
 
   const handlePegClick = (pegIndex: number) => {
+    if (isAnimating) return; // Prevent clicks during animation
+    
     console.log(`Peg clicked: ${pegIndex}`);
     const peg = pegs[pegIndex];
 
@@ -180,17 +221,24 @@ const TOHPGame: React.FC = () => {
       return;
     }
 
-    setPegs((prev) => {
-      const copy = prev.map((p) => [...p]);
-      copy[selectedDisk.pegIndex].pop();
-      copy[pegIndex].push(movingDisk);
-      return copy;
-    });
+    // Start animation
+    setIsAnimating(true);
 
-    console.log(
-      `Moved disk ${movingDisk} from peg ${selectedDisk.pegIndex} to peg ${pegIndex}`
-    );
-    setSelectedDisk(null);
+    // Update pegs after animation delay
+    setTimeout(() => {
+      setPegs((prev) => {
+        const copy = prev.map((p) => [...p]);
+        copy[selectedDisk.pegIndex].pop();
+        copy[pegIndex].push(movingDisk);
+        return copy;
+      });
+
+      console.log(
+        `Moved disk ${movingDisk} from peg ${selectedDisk.pegIndex} to peg ${pegIndex}`
+      );
+      setSelectedDisk(null);
+      setIsAnimating(false);
+    }, 300); // Animation duration
   };
 
   const diskWidth = (diskSize: number) => {
@@ -238,7 +286,8 @@ const TOHPGame: React.FC = () => {
         </div>
       </div>
 
-      <div className="tohp-setup">
+      {/* Game Setup Section - Full Width */}
+      <div className="tohp-setup-full-width">
         <div className="tohp-card tsp-setup-card">
           <div className="tsp-card-header">
             <h3>Game Setup</h3>
@@ -274,7 +323,62 @@ const TOHPGame: React.FC = () => {
             </button>
           </div>
         </div>
+      </div>
 
+      {/* Instructions Section */}
+      <div className="tohp-instructions">
+        <div className="instruction-content">
+          <h3>How to Play</h3>
+          <p>Click on the top disk of any peg to select it, then click on another peg to move it there.</p>
+        </div>
+      </div>
+
+      {/* Play Area and Solution Container */}
+      <div className="tohp-play-solution-container">
+        {/* Play Area - Board */}
+        <div className="tohp-board">
+          <div className="tohp-pegs-container">
+            {pegs.map((peg, pegIndex) => (
+              <div
+                key={pegIndex}
+                className="tohp-peg-wrapper"
+                onClick={() => handlePegClick(pegIndex)}
+              >
+                <div className="tohp-peg-slot">
+                  <div className="tohp-peg" />
+                  <div className="tohp-disk-stack">
+                    {peg.map((diskSize, diskIndex) => {
+                      const w = diskWidth(diskSize);
+                      const bottomPos = diskIndex * (DISK_HEIGHT + DISK_GAP);
+                      const isSelected =
+                        selectedDisk?.pegIndex === pegIndex &&
+                        selectedDisk?.size === diskSize &&
+                        diskIndex === peg.length - 1;
+
+                      return (
+                        <div
+                          key={diskIndex}
+                          className={`tohp-disk ${isSelected ? "selected-disk" : ""}`}
+                          style={{
+                            "--disk-width": `${w}px`,
+                            "--disk-bottom": `${bottomPos}px`,
+                          } as React.CSSProperties}
+                        >
+                          {diskSize}
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+                <div className="tohp-peg-label">
+                  {String.fromCharCode(65 + pegIndex)}
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* Your Solution Section */}
         <form
           className="tohp-card tsp-setup-card tohp-user-inputs"
           onSubmit={handleSubmit}
@@ -288,23 +392,64 @@ const TOHPGame: React.FC = () => {
               <label htmlFor="num-moves" className="input-label">
                 Number of Moves
               </label>
-              <input
-                id="num-moves"
-                type="number"
-                value={userMovesCount}
-                onChange={(e) => setUserMovesCount(e.target.value)}
-                placeholder="Enter total moves"
-                className="modern-input"
-              />
+              <div className="moves-counter">
+                <button type="button" className="counter-btn" onClick={decrementMoves}>
+                  −
+                </button>
+                <input
+                  id="num-moves"
+                  type="number"
+                  value={userMovesCount}
+                  onChange={(e) => setUserMovesCount(e.target.value)}
+                  placeholder="0"
+                  className="modern-input counter-input"
+                  readOnly
+                />
+                <button type="button" className="counter-btn" onClick={incrementMoves}>
+                  +
+                </button>
+              </div>
+            </div>
+
+            <div className="input-group">
+              <label className="input-label">
+                Build Move Sequence
+              </label>
+              <div className="move-builder">
+                <div className="move-builder-grid">
+                  {['A', 'B', 'C', ...(numPegs === 4 ? ['D'] : [])].map((from) =>
+                    ['A', 'B', 'C', ...(numPegs === 4 ? ['D'] : [])]
+                      .filter((to) => to !== from)
+                      .map((to) => (
+                        <button
+                          key={`${from}-${to}`}
+                          type="button"
+                          className="move-btn"
+                          onClick={() => addMoveToSequence(from, to)}
+                        >
+                          {from} → {to}
+                        </button>
+                      ))
+                  )}
+                </div>
+                <div className="move-actions">
+                  <button type="button" className="action-btn remove-btn" onClick={removeLastMove}>
+                    ↶ Undo Last
+                  </button>
+                  <button type="button" className="action-btn clear-btn" onClick={clearMoves}>
+                    ✕ Clear All
+                  </button>
+                </div>
+              </div>
             </div>
 
             <div className="input-group">
               <label htmlFor="seq-moves" className="input-label">
-                Move Sequence
+                Move Sequence (Preview)
               </label>
               <textarea
                 id="seq-moves"
-                placeholder="e.g., A→C, A→B, B→C"
+                placeholder="Click buttons above to build sequence"
                 value={userSequence}
                 onChange={(e) => setUserSequence(e.target.value)}
                 rows={3}
@@ -334,61 +479,6 @@ const TOHPGame: React.FC = () => {
           </div>
         </div>
       )}
-
-      <div className="tohp-instructions">
-        <div className="instruction-content">
-          <h3>How to Play</h3>
-          <p>Click on the top disk of any peg to select it, then click on another peg to move it there.</p>
-        </div>
-      </div>
-
-      <div className="tohp-board">
-        <div className="tohp-pegs-container">
-          {pegs.map((peg, pegIndex) => (
-            <div
-              key={pegIndex}
-              className="tohp-peg-wrapper"
-              onClick={() => handlePegClick(pegIndex)}
-            >
-              <div className="tohp-peg-label">
-                {String.fromCharCode(65 + pegIndex)}
-              </div>
-              <div
-                className={`tohp-peg-slot ${
-                  selectedDisk?.pegIndex === pegIndex ? "selected-slot" : ""
-                }`}
-              >
-                <div className="tohp-peg"></div>
-                <div className="tohp-disk-stack">
-                  {peg.map((diskSize, idx) => {
-                    const bottom = idx * (DISK_HEIGHT + DISK_GAP);
-                    const isTop = idx === peg.length - 1;
-                    const isSelected =
-                      selectedDisk?.pegIndex === pegIndex &&
-                      selectedDisk.size === diskSize &&
-                      isTop;
-                    return (
-                      <div
-                        key={idx}
-                        className={`tohp-disk ${isTop ? "top-disk" : ""} ${
-                          isSelected ? "selected-disk" : ""
-                        }`}
-                        style={{
-                          ['--disk-width' as string]: `${diskWidth(diskSize)}px`,
-                          ['--disk-bottom' as string]: `${bottom}px`,
-                        } as React.CSSProperties}
-                        title={`Disk ${diskSize}`}
-                      >
-                        {diskSize}
-                      </div>
-                    );
-                  })}
-                </div>
-              </div>
-            </div>
-          ))}
-        </div>
-      </div>
 
       {/* Confirm Leave Dialog */}
       <ConfirmDialog
