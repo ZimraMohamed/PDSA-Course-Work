@@ -1,14 +1,29 @@
 import React, { useEffect, useState } from "react";
+import { useNavigate } from 'react-router-dom';
+import ConfirmDialog from '../../Common/ConfirmDialog';
+import GameResultDialog from '../../Common/GameResultDialog';
 import "./TOHPGame.css";
 
 const TOHPGame: React.FC = () => {
+  const navigate = useNavigate();
   const [numPegs, setNumPegs] = useState<number>(3);
   const [numDisks, setNumDisks] = useState<number>(
     Math.floor(Math.random() * 6) + 5
   ); // 5-10
   const [userMovesCount, setUserMovesCount] = useState<string>("");
   const [userSequence, setUserSequence] = useState<string>("");
-  const [result, setResult] = useState<string | null>(null);
+  const [userAnswer, setUserAnswer] = useState<string>("");
+  const [correctAnswer, setCorrectAnswer] = useState<string>("");
+
+  // Game progress tracking
+  const [passedRounds, setPassedRounds] = useState<number>(0);
+  const [failedRounds, setFailedRounds] = useState<number>(0);
+  const [showConfirmDialog, setShowConfirmDialog] = useState<boolean>(false);
+  const [showResultDialog, setShowResultDialog] = useState<boolean>(false);
+  const [currentResult, setCurrentResult] = useState<'pass' | 'fail' | 'draw'>('pass');
+
+  // Get player name from sessionStorage
+  const playerName = sessionStorage.getItem('currentPlayerName') || 'Anonymous';
 
   type PegState = number[][];
   const [pegs, setPegs] = useState<PegState>([]);
@@ -32,10 +47,36 @@ const TOHPGame: React.FC = () => {
     console.log(`Game initialized with ${numPegs} pegs and ${numDisks} disks.`);
   }, [numPegs, numDisks]);
 
+  const handleBackToGames = () => {
+    if (passedRounds > 0 || failedRounds > 0) {
+      setShowConfirmDialog(true);
+    } else {
+      navigate('/');
+    }
+  };
+
+  const handleConfirmLeave = () => {
+    setShowConfirmDialog(false);
+    navigate('/');
+  };
+
+  const handleCancelLeave = () => {
+    setShowConfirmDialog(false);
+  };
+
+  const handleNextRound = () => {
+    setShowResultDialog(false);
+    regenerateDisks();
+  };
+
+  const handleResultBackToGames = () => {
+    setShowResultDialog(false);
+    navigate('/');
+  };
+
   const regenerateDisks = () => {
     const newCount = Math.floor(Math.random() * 6) + 5;
     setNumDisks(newCount);
-    setResult(null);
     setUserMovesCount("");
     setUserSequence("");
     console.log(`New game generated with ${newCount} disks.`);
@@ -46,7 +87,7 @@ const TOHPGame: React.FC = () => {
 
     // Validate mandatory fields
     if (!userMovesCount.trim() || !userSequence.trim()) {
-        setResult("Please fill in both Number of Moves and Sequence of Moves.");
+        alert("Please fill in both Number of Moves and Sequence of Moves.");
         return;
     }
 
@@ -68,35 +109,45 @@ const TOHPGame: React.FC = () => {
         if (!res.ok) {
             const errData = await res.json();
             console.error("Backend error:", errData.message || "Unknown error");
-            setResult(errData.message || "Backend returned an error.");
+            alert(errData.message || "Backend returned an error.");
             return;
         }
 
         const data = await res.json();
         console.log("Backend response:", data);
 
-        // Handle all four situations
-        let displayMessage = "";
-
+        // Update game progress and show result dialog
         if (data.correctMoves && data.correctSequence) {
-            displayMessage = "Correct! Both move count and sequence are correct.";
-        } else if (!data.correctMoves && !data.correctSequence) {
-            displayMessage = `Ooops! Move count and sequence are both wrong.\n`;
-            displayMessage += `Your moves: ${userMovesCount}, Optimal: ${data.optimalMoves}\n`;
-            displayMessage += `Correct sequence: ${data.correctSequenceList || data.correctSequence}`;
-        } else if (!data.correctMoves && data.correctSequence) {
-            displayMessage = `Ooops! Move count is wrong but sequence is correct.\n`;
-            displayMessage += `Your moves: ${userMovesCount}, Optimal: ${data.optimalMoves}`;
-        } else if (data.correctMoves && !data.correctSequence) {
-            displayMessage = `Ooops! Move count is correct but sequence is wrong.\n`;
-            displayMessage += `Correct sequence: ${data.correctSequenceList || data.correctSequence}`;
+            const newPassed = passedRounds + 1;
+            setPassedRounds(newPassed);
+            
+            if (newPassed === failedRounds) {
+                setCurrentResult('draw');
+            } else {
+                setCurrentResult('pass');
+            }
+        } else {
+            const newFailed = failedRounds + 1;
+            setFailedRounds(newFailed);
+            
+            if (newFailed === passedRounds) {
+                setCurrentResult('draw');
+            } else {
+                setCurrentResult('fail');
+            }
         }
 
-        setResult(displayMessage);
+        // Prepare user answer and correct answer for dialog
+        const userAnswerText = `Moves: ${userMovesCount}, Sequence: ${userSequence}`;
+        const correctAnswerText = `Moves: ${data.optimalMoves}, Sequence: ${data.correctSequenceList || data.correctSequence}`;
+
+        setUserAnswer(userAnswerText);
+        setCorrectAnswer(correctAnswerText);
+        setShowResultDialog(true);
 
     } catch (err) {
         console.error(err);
-        setResult("Error connecting to backend.");
+        alert("Error connecting to backend.");
     }
 };
 
@@ -155,7 +206,7 @@ const TOHPGame: React.FC = () => {
     <div className="tohp-game">
       <div className="tohp-nav">
         <button
-          onClick={() => (window.location.href = "/")}
+          onClick={handleBackToGames}
           className="tohp-back-btn"
         >
           ← Back to Games
@@ -165,37 +216,62 @@ const TOHPGame: React.FC = () => {
       <div className="tohp-header">
         <h1>🗼 Tower of Hanoi</h1>
         <p>
-          Move the stack of disks from the left peg to the right peg following
-          the rules: only one disk may be moved at a time, and a larger disk
-          cannot be placed on top of a smaller disk.
+          Move all disks to the rightmost peg. Only move one disk at a time, and never place a larger disk on a smaller one.
         </p>
-        <button className="tohp-new-game-btn" onClick={regenerateDisks}>
-          New Game
-        </button>
+        
+        <div className="tsp-game-stats">
+          <div className="player-info">
+            <span className="player-label">Player:</span>
+            <span className="player-name">{playerName}</span>
+          </div>
+          
+          <div className="game-progress">
+            <div className="progress-item passed">
+              <span className="progress-label">Passed:</span>
+              <span className="progress-value">{passedRounds}</span>
+            </div>
+            <div className="progress-item failed">
+              <span className="progress-label">Failed:</span>
+              <span className="progress-value">{failedRounds}</span>
+            </div>
+          </div>
+        </div>
       </div>
 
       <div className="tohp-setup">
         <div className="tohp-card tsp-setup-card">
           <div className="tsp-card-header">
             <h3>Game Setup</h3>
+            <p className="card-subtitle">Configure your puzzle</p>
           </div>
           <div className="tsp-card-content">
-            <div className="tsp-input-row">
-              <label htmlFor="num-pegs">Number of Pegs:</label>
-              <select
-                id="num-pegs"
-                value={numPegs}
-                onChange={(e) => setNumPegs(parseInt(e.target.value, 10))}
-              >
-                <option value={3}>3</option>
-                <option value={4}>4</option>
-              </select>
+            <div className="setup-grid">
+              <div className="setup-item">
+                <label htmlFor="num-pegs" className="setup-label">
+                  Number of Pegs
+                </label>
+                <select
+                  id="num-pegs"
+                  value={numPegs}
+                  onChange={(e) => setNumPegs(parseInt(e.target.value, 10))}
+                  className="modern-select"
+                >
+                  <option value={3}>3 Pegs</option>
+                  <option value={4}>4 Pegs</option>
+                </select>
+              </div>
+
+              <div className="setup-item">
+                <label className="setup-label">
+                  Disk Count
+                </label>
+                <div className="tohp-disk-count">{numDisks} Disks</div>
+              </div>
             </div>
 
-            <div className="tsp-input-row">
-              <label>Disk Count (random):</label>
-              <div className="tohp-disk-count">{numDisks}</div>
-            </div>
+            <button className="tohp-new-game-btn" onClick={regenerateDisks}>
+              Generate New Puzzle
+            </button>
           </div>
         </div>
 
@@ -204,48 +280,44 @@ const TOHPGame: React.FC = () => {
           onSubmit={handleSubmit}
         >
           <div className="tsp-card-header">
-            <h3>Your Answer</h3>
+            <h3>Your Solution</h3>
+            <p className="card-subtitle">Enter your answer below</p>
           </div>
           <div className="tsp-card-content">
-            <div className="tsp-input-row">
-              <label htmlFor="num-moves">Number of moves:</label>
+            <div className="input-group">
+              <label htmlFor="num-moves" className="input-label">
+                Number of Moves
+              </label>
               <input
                 id="num-moves"
                 type="number"
                 value={userMovesCount}
                 onChange={(e) => setUserMovesCount(e.target.value)}
+                placeholder="Enter total moves"
+                className="modern-input"
               />
             </div>
 
-            <div className="tsp-input-row">
-              <label htmlFor="seq-moves">Sequence of moves:</label>
+            <div className="input-group">
+              <label htmlFor="seq-moves" className="input-label">
+                Move Sequence
+              </label>
               <textarea
                 id="seq-moves"
                 placeholder="e.g., A→C, A→B, B→C"
                 value={userSequence}
                 onChange={(e) => setUserSequence(e.target.value)}
                 rows={3}
+                className="modern-textarea"
               />
             </div>
 
-            <div className="tsp-input-row">
-              <button type="submit" className="tohp-start-btn tohp-check-btn">
-                Check Answer
-              </button>
-            </div>
+            <button type="submit" className="tohp-check-btn">
+              Check Answer
+            </button>
           </div>
         </form>
       </div>
-
-      {result && (
-        <div
-          className={`tohp-result ${
-            result.startsWith("Correct") ? "correct" : "incorrect"
-          }`}
-        >
-          {result}
-        </div>
-      )}
 
       {moveErrorPopup && (
         <div className="tohp-modal-overlay">
@@ -262,6 +334,13 @@ const TOHPGame: React.FC = () => {
           </div>
         </div>
       )}
+
+      <div className="tohp-instructions">
+        <div className="instruction-content">
+          <h3>How to Play</h3>
+          <p>Click on the top disk of any peg to select it, then click on another peg to move it there.</p>
+        </div>
+      </div>
 
       <div className="tohp-board">
         <div className="tohp-pegs-container">
@@ -280,10 +359,7 @@ const TOHPGame: React.FC = () => {
                 }`}
               >
                 <div className="tohp-peg"></div>
-                <div
-                  className="tohp-disk-stack"
-                  style={{ position: "relative" }}
-                >
+                <div className="tohp-disk-stack">
                   {peg.map((diskSize, idx) => {
                     const bottom = idx * (DISK_HEIGHT + DISK_GAP);
                     const isTop = idx === peg.length - 1;
@@ -298,12 +374,9 @@ const TOHPGame: React.FC = () => {
                           isSelected ? "selected-disk" : ""
                         }`}
                         style={{
-                          width: `${diskWidth(diskSize)}px`,
-                          bottom: `${bottom}px`,
-                          height: `${DISK_HEIGHT}px`,
-                          lineHeight: `${DISK_HEIGHT}px`,
-                          position: "absolute",
-                        }}
+                          ['--disk-width' as string]: `${diskWidth(diskSize)}px`,
+                          ['--disk-bottom' as string]: `${bottom}px`,
+                        } as React.CSSProperties}
                         title={`Disk ${diskSize}`}
                       >
                         {diskSize}
@@ -316,6 +389,27 @@ const TOHPGame: React.FC = () => {
           ))}
         </div>
       </div>
+
+      {/* Confirm Leave Dialog */}
+      <ConfirmDialog
+        isOpen={showConfirmDialog}
+        title="Leave Game?"
+        message="Are you sure you want to leave? Your current progress will be lost."
+        onConfirm={handleConfirmLeave}
+        onCancel={handleCancelLeave}
+      />
+
+      {/* Game Result Dialog */}
+      <GameResultDialog
+        isOpen={showResultDialog}
+        result={currentResult}
+        onNextRound={handleNextRound}
+        onBackToGames={handleResultBackToGames}
+        passedCount={passedRounds}
+        failedCount={failedRounds}
+        userAnswer={userAnswer}
+        correctAnswer={correctAnswer}
+      />
     </div>
   );
 };
