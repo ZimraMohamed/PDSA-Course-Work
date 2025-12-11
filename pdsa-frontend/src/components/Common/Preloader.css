@@ -11,7 +11,9 @@
   left: 0;
   width: 100%;
   height: 100%;
-  background: linear-gradient(135deg, #0f0f23 0%, #1a1a2e 50%, #16213e 100%);
+  background: linear-gradient(135deg, #0a0a1a 0%, #14142b 25%, #1a1a3e 50%, #14142b 75%, #0a0a1a 100%);
+  background-size: 200% 200%;
+  animation: gradientShift 15s ease infinite;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -19,6 +21,11 @@
   opacity: 1;
   transition: opacity 0.5s ease-out;
   overflow: hidden;
+}
+
+@keyframes gradientShift {
+  0%, 100% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
 }
 
 .preloader--complete {
@@ -35,6 +42,22 @@
   overflow: hidden;
 }
 
+.preloader__background::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: radial-gradient(circle at 50% 50%, rgba(64, 224, 208, 0.08) 0%, transparent 50%);
+  animation: pulse 4s ease-in-out infinite;
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 0.3; transform: scale(1); }
+  50% { opacity: 0.6; transform: scale(1.1); }
+}
+
 .preloader__grid {
   position: absolute;
   top: -50%;
@@ -42,15 +65,16 @@
   width: 200%;
   height: 200%;
   background-image: 
-    linear-gradient(rgba(64, 224, 208, 0.1) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(64, 224, 208, 0.1) 1px, transparent 1px);
-  background-size: 60px 60px;
-  animation: gridMove 20s linear infinite;
+    linear-gradient(rgba(64, 224, 208, 0.15) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(64, 224, 208, 0.15) 1px, transparent 1px);
+  background-size: 80px 80px;
+  animation: gridMove 25s linear infinite;
+  opacity: 0.4;
 }
 
 @keyframes gridMove {
   0% { transform: translate(0, 0) rotate(0deg); }
-  100% { transform: translate(-60px, -60px) rotate(360deg); }
+  100% { transform: translate(-80px, -80px) rotate(360deg); }
 }
 
 .preloader__content {
@@ -79,8 +103,22 @@
 
 .preloader__title-accent {
   color: #40e0d0;
-  text-shadow: 0 0 20px rgba(64, 224, 208, 0.5);
+  text-shadow: 
+    0 0 20px rgba(64, 224, 208, 0.6),
+    0 0 40px rgba(64, 224, 208, 0.3),
+    0 0 60px rgba(64, 224, 208, 0.1);
   animation: titleGlow 2s ease-in-out infinite alternate;
+  background: linear-gradient(135deg, #40e0d0, #64ffda, #40e0d0);
+  background-size: 200% 200%;
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  animation: titleGlow 2s ease-in-out infinite alternate, gradientText 3s ease infinite;
+}
+
+@keyframes gradientText {
+  0%, 100% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
 }
 
 .preloader__title-main {
