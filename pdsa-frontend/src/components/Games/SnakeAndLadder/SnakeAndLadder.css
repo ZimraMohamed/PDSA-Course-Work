@@ -85,6 +85,17 @@
   gap: 8px;
 }
 
+.sal-button-container {
+  margin-top: 8px;
+}
+
+.sal-after-start {
+  display: grid;
+  grid-template-columns: 2fr 1fr;
+  gap: 12px;
+  margin-top: 12px;
+}
+
 button {
   background: #2563eb;
   color: white;

@@ -179,13 +179,14 @@ const SnakeAndLadder: React.FC = () => {
             value={boardSize}
             onChange={(e) => setBoardSize(Math.max(6, Math.min(12, Number(e.target.value) || 6)))}
             disabled={gameStarted}
+            aria-label="Select board size"
           >
             {[6,7,8,9,10,11,12].map(n => (
               <option key={n} value={n}>{`${n} x ${n}`}</option>
             ))}
           </select>
 
-          <div style={{ marginTop: 8 }}>
+          <div className="sal-button-container">
               <button onClick={startGame} disabled={gameStarted || !playerName.trim()}>Start Game</button>
           </div>
         </div>
@@ -198,7 +199,7 @@ const SnakeAndLadder: React.FC = () => {
       </div>
 
       {gameStarted && (
-        <div className="sal-after-start" style={{ display: 'grid', gridTemplateColumns: '2fr 1fr', gap: 12, marginTop: 12 }}>
+        <div className="sal-after-start">
           <div>
             <GameBoard players={players} boardSize={boardSize} />
           </div>
@@ -241,7 +242,12 @@ const SnakeAndLadder: React.FC = () => {
           <p>Result: <strong>Win (correct)</strong></p>
           <div className="sal-save-winner">
             <label>Save winner name:</label>
-            <input value={saveNameInput} onChange={(e) => setSaveNameInput(e.target.value)} />
+            <input 
+              value={saveNameInput} 
+              onChange={(e) => setSaveNameInput(e.target.value)} 
+              placeholder="Enter winner name"
+              aria-label="Winner name input"
+            />
             <button onClick={saveWinnerName}>Save</button>
           </div>
         </div>
