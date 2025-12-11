@@ -1,7 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { useNavigate } from 'react-router-dom';
 import ConfirmDialog from '../../Common/ConfirmDialog';
-import GameResultDialog from '../../Common/GameResultDialog';
 import "./TOHPGame.css";
 
 const TOHPGame: React.FC = () => {
@@ -86,43 +85,13 @@ const TOHPGame: React.FC = () => {
     console.log(`New game generated with ${newCount} disks.`);
   };
 
-  const incrementMoves = () => {
-    const current = parseInt(userMovesCount) || 0;
-    setUserMovesCount((current + 1).toString());
-  };
-
-  const decrementMoves = () => {
-    const current = parseInt(userMovesCount) || 0;
-    if (current > 0) {
-      setUserMovesCount((current - 1).toString());
-    }
-  };
-
-  const addMoveToSequence = (from: string, to: string) => {
-    const move = `${from}→${to}`;
-    const newMoves = [...recordedMoves, move];
-    setRecordedMoves(newMoves);
-    setUserSequence(newMoves.join(", "));
-    incrementMoves();
-  };
-
-  const removeLastMove = () => {
-    if (recordedMoves.length > 0) {
-      const newMoves = recordedMoves.slice(0, -1);
-      setRecordedMoves(newMoves);
-      setUserSequence(newMoves.join(", "));
-      decrementMoves();
-    }
-  };
-
-  const clearMoves = () => {
-    setRecordedMoves([]);
-    setUserSequence("");
-    setUserMovesCount("");
-  };
-
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    // Scroll to bottom to show result section
+    setTimeout(() => {
+      window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' });
+    }, 300);
 
     // Validate mandatory fields
     if (!userMovesCount.trim() || !userSequence.trim()) {
@@ -224,6 +193,10 @@ const TOHPGame: React.FC = () => {
     // Start animation
     setIsAnimating(true);
 
+    // Get peg labels (A, B, C, D)
+    const fromPegLabel = String.fromCharCode(65 + selectedDisk.pegIndex);
+    const toPegLabel = String.fromCharCode(65 + pegIndex);
+
     // Update pegs after animation delay
     setTimeout(() => {
       setPegs((prev) => {
@@ -233,8 +206,21 @@ const TOHPGame: React.FC = () => {
         return copy;
       });
 
+      // Automatically update move count and sequence
+      setUserMovesCount((prevCount) => {
+        const currentCount = parseInt(prevCount) || 0;
+        return String(currentCount + 1);
+      });
+
+      setUserSequence((prevSequence) => {
+        const move = `${fromPegLabel}→${toPegLabel}`;
+        return prevSequence ? `${prevSequence}, ${move}` : move;
+      });
+
+      setRecordedMoves((prev) => [...prev, `${fromPegLabel}→${toPegLabel}`]);
+
       console.log(
-        `Moved disk ${movingDisk} from peg ${selectedDisk.pegIndex} to peg ${pegIndex}`
+        `Moved disk ${movingDisk} from peg ${selectedDisk.pegIndex} (${fromPegLabel}) to peg ${pegIndex} (${toPegLabel})`
       );
       setSelectedDisk(null);
       setIsAnimating(false);
@@ -390,70 +376,30 @@ const TOHPGame: React.FC = () => {
           <div className="tsp-card-content">
             <div className="input-group">
               <label htmlFor="num-moves" className="input-label">
-                Number of Moves
+                Number of Moves (Auto-tracked)
               </label>
-              <div className="moves-counter">
-                <button type="button" className="counter-btn" onClick={decrementMoves}>
-                  −
-                </button>
-                <input
-                  id="num-moves"
-                  type="number"
-                  value={userMovesCount}
-                  onChange={(e) => setUserMovesCount(e.target.value)}
-                  placeholder="0"
-                  className="modern-input counter-input"
-                  readOnly
-                />
-                <button type="button" className="counter-btn" onClick={incrementMoves}>
-                  +
-                </button>
-              </div>
-            </div>
-
-            <div className="input-group">
-              <label className="input-label">
-                Build Move Sequence
-              </label>
-              <div className="move-builder">
-                <div className="move-builder-grid">
-                  {['A', 'B', 'C', ...(numPegs === 4 ? ['D'] : [])].map((from) =>
-                    ['A', 'B', 'C', ...(numPegs === 4 ? ['D'] : [])]
-                      .filter((to) => to !== from)
-                      .map((to) => (
-                        <button
-                          key={`${from}-${to}`}
-                          type="button"
-                          className="move-btn"
-                          onClick={() => addMoveToSequence(from, to)}
-                        >
-                          {from} → {to}
-                        </button>
-                      ))
-                  )}
-                </div>
-                <div className="move-actions">
-                  <button type="button" className="action-btn remove-btn" onClick={removeLastMove}>
-                    ↶ Undo Last
-                  </button>
-                  <button type="button" className="action-btn clear-btn" onClick={clearMoves}>
-                    ✕ Clear All
-                  </button>
-                </div>
-              </div>
+              <input
+                id="num-moves"
+                type="number"
+                value={userMovesCount}
+                placeholder="0"
+                className="modern-input"
+                readOnly
+                style={{ textAlign: 'center', fontSize: '1.1rem', fontWeight: '600' }}
+              />
             </div>
 
             <div className="input-group">
               <label htmlFor="seq-moves" className="input-label">
-                Move Sequence (Preview)
+                Move Sequence (Auto-tracked)
               </label>
               <textarea
                 id="seq-moves"
-                placeholder="Click buttons above to build sequence"
+                placeholder="Move disks between pegs to build sequence automatically"
                 value={userSequence}
-                onChange={(e) => setUserSequence(e.target.value)}
                 rows={3}
                 className="modern-textarea"
+                readOnly
               />
             </div>
 
@@ -464,18 +410,54 @@ const TOHPGame: React.FC = () => {
         </form>
       </div>
 
-      {moveErrorPopup && (
-        <div className="tohp-modal-overlay">
-          <div className="tohp-modal">
-            <h3>{moveErrorPopup}</h3>
-            <div className="tohp-modal-actions">
-              <button
-                className="tohp-start-btn tohp-submit-btn"
-                onClick={() => setMoveErrorPopup(null)}
-              >
-                OK
+      {/* Result Section */}
+      {showResultDialog && (
+        <div className="tohp-result-section">
+          <div className={`result-card result-${currentResult}`}>
+            <div className="result-header">
+              <div className="result-icon">
+                {currentResult === 'pass' ? '✓' : currentResult === 'fail' ? '✕' : '='}
+              </div>
+              <h3 className="result-title">
+                {currentResult === 'pass' ? 'Correct!' : currentResult === 'fail' ? 'Incorrect' : 'Draw'}
+              </h3>
+            </div>
+
+            <div className="result-answers">
+              <div className="answer-section">
+                <h4 className="answer-label">Your Answer</h4>
+                <p className="answer-text">{userAnswer}</p>
+              </div>
+              <div className="answer-section">
+                <h4 className="answer-label">Correct Answer</h4>
+                <p className="answer-text correct">{correctAnswer}</p>
+              </div>
+            </div>
+
+            <div className="result-actions">
+              <button className="result-btn next-round-btn" onClick={handleNextRound}>
+                Next Round
+              </button>
+              <button className="result-btn back-btn" onClick={handleResultBackToGames}>
+                Back to Games
               </button>
             </div>
+          </div>
+        </div>
+      )}
+
+      {moveErrorPopup && (
+        <div className="tohp-modal-overlay" onClick={() => setMoveErrorPopup(null)}>
+          <div className="tohp-error-modal" onClick={(e) => e.stopPropagation()}>
+            <div className="error-icon">⚠️</div>
+            <h3 className="error-title">Invalid Move</h3>
+            <p className="error-message">{moveErrorPopup}</p>
+            <button
+              className="error-ok-btn"
+              onClick={() => setMoveErrorPopup(null)}
+            >
+              Got it!
+            </button>
           </div>
         </div>
       )}
@@ -489,17 +471,6 @@ const TOHPGame: React.FC = () => {
         onCancel={handleCancelLeave}
       />
 
-      {/* Game Result Dialog */}
-      <GameResultDialog
-        isOpen={showResultDialog}
-        result={currentResult}
-        onNextRound={handleNextRound}
-        onBackToGames={handleResultBackToGames}
-        passedCount={passedRounds}
-        failedCount={failedRounds}
-        userAnswer={userAnswer}
-        correctAnswer={correctAnswer}
-      />
     </div>
   );
 };
