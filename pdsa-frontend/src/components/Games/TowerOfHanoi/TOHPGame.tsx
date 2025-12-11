@@ -10,37 +10,26 @@ const TOHPGame: React.FC = () => {
   const [userSequence, setUserSequence] = useState<string>("");
   const [result, setResult] = useState<string | null>(null);
 
-  const [showNamePopup, setShowNamePopup] = useState<boolean>(false);
-  const [playerName, setPlayerName] = useState<string>("");
-  const [nameSubmitted, setNameSubmitted] = useState<boolean>(false);
-
   type PegState = number[][];
   const [pegs, setPegs] = useState<PegState>([]);
 
   const [moveErrorPopup, setMoveErrorPopup] = useState<string | null>(null);
 
-  // selected disk = { pegIndex, size, fromIndex } where fromIndex is top index in peg array
   const [selectedDisk, setSelectedDisk] = useState<{
     pegIndex: number;
     size: number;
   } | null>(null);
 
-  useEffect(() => {
-    // keep disk count within range
-    if (numDisks < 5) setNumDisks(5);
-    if (numDisks > 10) setNumDisks(10);
-  }, [numDisks]);
-
   // Initialize pegs whenever numPegs or numDisks changes
   useEffect(() => {
     const initialPegs: PegState = Array.from({ length: numPegs }, () => []);
-    // Representation: peg array has elements ordered bottom -> top,
-    // and the top (movable) disk is the last element: peg[peg.length - 1]
     const startingPeg: number[] = [];
-    for (let d = numDisks; d >= 1; d--) startingPeg.push(d); // largest ... smallest (1 is smallest at the end)
+    for (let d = numDisks; d >= 1; d--) startingPeg.push(d);
     initialPegs[0] = startingPeg;
     setPegs(initialPegs);
     setSelectedDisk(null);
+
+    console.log(`Game initialized with ${numPegs} pegs and ${numDisks} disks.`);
   }, [numPegs, numDisks]);
 
   const regenerateDisks = () => {
@@ -49,94 +38,97 @@ const TOHPGame: React.FC = () => {
     setResult(null);
     setUserMovesCount("");
     setUserSequence("");
-    // effect above will reinitialize pegs
+    console.log(`New game generated with ${newCount} disks.`);
   };
 
-  const computeOptimalMoves = (pegsNum: number, disks: number): number => {
-    if (disks <= 0) return 0;
-    if (pegsNum <= 3) {
-      return Math.pow(2, disks) - 1;
-    }
-
-    const M: number[] = new Array(disks + 1).fill(0);
-    M[0] = 0;
-    for (let i = 1; i <= disks; i++) {
-      let best = Math.pow(2, i) - 1;
-      for (let k = 1; k < i; k++) {
-        const candidate = 2 * M[k] + Math.pow(2, i - k) - 1;
-        if (candidate < best) best = candidate;
-      }
-      M[i] = best;
-    }
-    return M[disks];
-  };
-
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    const userMoves = parseInt(userMovesCount, 10);
-    if (isNaN(userMoves)) {
-      setResult("Please enter a valid number of moves.");
-      return;
+
+    // Validate mandatory fields
+    if (!userMovesCount.trim() || !userSequence.trim()) {
+        setResult("Please fill in both Number of Moves and Sequence of Moves.");
+        return;
     }
-    const optimal = computeOptimalMoves(numPegs, numDisks);
-    if (userMoves === optimal) {
-      setResult("Correct");
-      setPlayerName("");
-      setShowNamePopup(true);
-    } else {
-      setResult(
-        `Ooops! Your Answer Is ${userMoves}. Correct Answer is ${optimal}`
-      );
+
+    console.log("Submitting moves count:", userMovesCount);
+    console.log("Submitting sequence:", userSequence);
+
+    try {
+        const res = await fetch("http://localhost:5007/api/TOHP/check-moves", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+                numPegs,
+                numDisks,
+                userMovesCount: parseInt(userMovesCount, 10),
+                userSequence
+            })
+        });
+
+        if (!res.ok) {
+            const errData = await res.json();
+            console.error("Backend error:", errData.message || "Unknown error");
+            setResult(errData.message || "Backend returned an error.");
+            return;
+        }
+
+        const data = await res.json();
+        console.log("Backend response:", data);
+
+        // Handle all four situations
+        let displayMessage = "";
+
+        if (data.correctMoves && data.correctSequence) {
+            displayMessage = "Correct! Both move count and sequence are correct.";
+        } else if (!data.correctMoves && !data.correctSequence) {
+            displayMessage = `Ooops! Move count and sequence are both wrong.\n`;
+            displayMessage += `Your moves: ${userMovesCount}, Optimal: ${data.optimalMoves}\n`;
+            displayMessage += `Correct sequence: ${data.correctSequenceList || data.correctSequence}`;
+        } else if (!data.correctMoves && data.correctSequence) {
+            displayMessage = `Ooops! Move count is wrong but sequence is correct.\n`;
+            displayMessage += `Your moves: ${userMovesCount}, Optimal: ${data.optimalMoves}`;
+        } else if (data.correctMoves && !data.correctSequence) {
+            displayMessage = `Ooops! Move count is correct but sequence is wrong.\n`;
+            displayMessage += `Correct sequence: ${data.correctSequenceList || data.correctSequence}`;
+        }
+
+        setResult(displayMessage);
+
+    } catch (err) {
+        console.error(err);
+        setResult("Error connecting to backend.");
     }
-  };
+};
 
-  const handleNameSubmit = (e?: React.FormEvent) => {
-    if (e) e.preventDefault();
-    if (!playerName.trim()) return;
-    console.log("TOHP: Player submitted name:", playerName);
-    setNameSubmitted(true);
-    setShowNamePopup(false);
-    setResult(`Correct — ${playerName}'s Answer Saved!`);
-  };
 
-  const handleCancelName = () => {
-    setShowNamePopup(false);
-  };
 
-  // Click-to-move: click a peg to pick top disk, click another peg to drop
   const handlePegClick = (pegIndex: number) => {
+    console.log(`Peg clicked: ${pegIndex}`);
     const peg = pegs[pegIndex];
 
-    // If nothing selected, pick top disk
     if (!selectedDisk) {
-      if (peg.length === 0) return; // nothing to pick
+      if (peg.length === 0) return;
       const disk = peg[peg.length - 1];
       setSelectedDisk({ pegIndex, size: disk });
+      console.log(`Picked disk ${disk} from peg ${pegIndex}`);
       return;
     }
 
-    // If clicking same peg -> deselect
     if (selectedDisk.pegIndex === pegIndex) {
       setSelectedDisk(null);
+      console.log(`Deselected disk from peg ${pegIndex}`);
       return;
     }
 
-    // Attempt move from selectedDisk.pegIndex -> pegIndex
     const movingDisk = selectedDisk.size;
-
-    if (peg.length > 0) {
-      const topDisk = peg[peg.length - 1];
-      if (topDisk < movingDisk) {
-        // invalid
-        // we keep selection for convenience (or you can clear selection)
-        setMoveErrorPopup(
-          "Invalid move. Can't place larger disk on smaller disk."
-        );
-        return;
-      }
+    if (peg.length > 0 && peg[peg.length - 1] < movingDisk) {
+      setMoveErrorPopup(
+        "Invalid move. Can't place larger disk on smaller disk."
+      );
+      console.log("Invalid move attempted.");
+      return;
     }
 
-    // perform move (immutable update)
     setPegs((prev) => {
       const copy = prev.map((p) => [...p]);
       copy[selectedDisk.pegIndex].pop();
@@ -144,21 +136,20 @@ const TOHPGame: React.FC = () => {
       return copy;
     });
 
+    console.log(
+      `Moved disk ${movingDisk} from peg ${selectedDisk.pegIndex} to peg ${pegIndex}`
+    );
     setSelectedDisk(null);
   };
 
-  // helpers for rendering
   const diskWidth = (diskSize: number) => {
-    // diskSize ranges 1..numDisks, make width proportional
-    // base width for smallest (1) and scale up
     const base = 60;
     const step = 12;
     return base + diskSize * step;
   };
 
-  // constants for stacking (must match CSS heights)
-  const DISK_HEIGHT = 24; // px
-  const DISK_GAP = 6; // px
+  const DISK_HEIGHT = 24;
+  const DISK_GAP = 6;
 
   return (
     <div className="tohp-game">
@@ -221,7 +212,6 @@ const TOHPGame: React.FC = () => {
               <input
                 id="num-moves"
                 type="number"
-                min={1}
                 value={userMovesCount}
                 onChange={(e) => setUserMovesCount(e.target.value)}
               />
@@ -257,38 +247,6 @@ const TOHPGame: React.FC = () => {
         </div>
       )}
 
-      {showNamePopup && (
-        <div className="tohp-modal-overlay">
-          <div className="tohp-modal">
-            <h3>Congratulations! Wanna tell us your name?</h3>
-            <form onSubmit={handleNameSubmit}>
-              <input
-                type="text"
-                value={playerName}
-                onChange={(e) => setPlayerName(e.target.value)}
-                placeholder="Your name"
-                className="tohp-name-input"
-              />
-              <div className="tohp-modal-actions">
-                <button
-                  type="submit"
-                  className="tohp-start-btn tohp-submit-btn"
-                >
-                  Submit
-                </button>
-                <button
-                  type="button"
-                  className="tohp-start-btn tohp-cancel-btn"
-                  onClick={handleCancelName}
-                >
-                  Cancel
-                </button>
-              </div>
-            </form>
-          </div>
-        </div>
-      )}
-
       {moveErrorPopup && (
         <div className="tohp-modal-overlay">
           <div className="tohp-modal">
@@ -305,7 +263,6 @@ const TOHPGame: React.FC = () => {
         </div>
       )}
 
-      {/* Unified board */}
       <div className="tohp-board">
         <div className="tohp-pegs-container">
           {pegs.map((peg, pegIndex) => (

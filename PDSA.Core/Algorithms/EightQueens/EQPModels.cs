@@ -32,4 +32,12 @@ namespace PDSA.Core.Algorithms.EightQueens
         public bool Success { get; set; } = true;
         public string? ErrorMessage { get; set; }
     }
+
+    public class TOHPUserMoveRequest
+{
+    public int NumPegs { get; set; }
+    public int NumDisks { get; set; }
+    public string UserSequence { get; set; } = string.Empty;
+}
+
 }
