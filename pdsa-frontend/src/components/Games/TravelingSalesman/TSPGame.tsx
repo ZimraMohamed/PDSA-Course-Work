@@ -171,8 +171,9 @@ const TSPGame: React.FC = () => {
       return;
     }
 
-    if (userRoute.length !== selectedCities.length) {
-      setError(`Route must include all ${selectedCities.length} selected cities`);
+    const nonHomeCities = selectedCities.filter(city => city !== gameRound?.homeCityName);
+    if (userRoute.length !== nonHomeCities.length) {
+      setError(`Route must include all ${nonHomeCities.length} selected cities (excluding home city)`);
       return;
     }
 
@@ -461,7 +462,7 @@ const TSPGame: React.FC = () => {
                     
                     <div className="tsp-route-builder">
                       <div className="route-cities-grid">
-                        {selectedCities.map(city => {
+                        {selectedCities.filter(city => city !== gameRound?.homeCityName).map(city => {
                           const isInRoute = userRoute.includes(city);
                           const canAdd = !isInRoute;
                           return (
@@ -486,14 +487,14 @@ const TSPGame: React.FC = () => {
                     {userRoute.length > 0 && (
                       <div className="tsp-route-info">
                         <span className="info-label">Cities in your route:</span>
-                        <span className="info-value">{userRoute.length} / {selectedCities.length}</span>
+                        <span className="info-value">{userRoute.length} / {selectedCities.length - 1}</span>
                         <span className="info-separator">•</span>
                         <span className="info-label">Total distance:</span>
                         <span className="info-value">{calculateRouteDistance(userRoute)} km</span>
-                        {userRoute.length < selectedCities.length && (
+                        {userRoute.length < selectedCities.length - 1 && (
                           <>
                             <span className="info-separator">•</span>
-                            <span className="info-warning">Add {selectedCities.length - userRoute.length} more city(s)</span>
+                            <span className="info-warning">Add {selectedCities.length - 1 - userRoute.length} more city(s)</span>
                           </>
                         )}
                       </div>
@@ -510,7 +511,7 @@ const TSPGame: React.FC = () => {
                       <button 
                         className="submit-route-btn"
                         onClick={validateAnswer} 
-                        disabled={loading || userRoute.length !== selectedCities.length}
+                        disabled={loading || userRoute.length !== selectedCities.length - 1}
                       >
                         {loading ? 'Checking...' : 'Submit Route'}
                       </button>
