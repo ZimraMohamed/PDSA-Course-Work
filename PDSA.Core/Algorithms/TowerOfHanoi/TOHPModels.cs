@@ -14,11 +14,18 @@ namespace PDSA.API.Models
     // Response DTO: data returned to frontend
     public class TOHPResponse
     {
-        public int OptimalMoves { get; set; }
-        public int UserMoves { get; set; }
-        public bool CorrectMoves { get; set; }           // is move count correct
-        public bool CorrectSequence { get; set; }        // is sequence correct
-        public List<string> CorrectSequenceList { get; set; } = new List<string>(); // correct move sequence
-        public string Message { get; set; } = string.Empty;
+    public int OptimalMoves { get; set; }
+    public int UserMoves { get; set; }
+    public bool CorrectMoves { get; set; }           
+    public bool CorrectSequence { get; set; }        
+    public List<string> CorrectSequenceList { get; set; } = new List<string>();
+    public string Message { get; set; } = string.Empty;
+
+    // New properties
+    public string AlgorithmName { get; set; } = "";
+    public long AlgorithmTimeMs { get; set; } = 0;
+
+    // For multiple algorithms
+    public Dictionary<string, long> BenchmarkTimings { get; set; } = new();
     }
 }

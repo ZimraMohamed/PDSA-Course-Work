@@ -17,32 +17,34 @@ namespace PDSA.API.Controllers.Games
             _service = new TOHPService();
         }
 
-        [HttpPost("check-moves")]
-        public IActionResult CheckMoves([FromBody] TOHPRequest request)
+       [HttpPost("check-moves")]
+public IActionResult CheckMoves([FromBody] TOHPRequest request)
+    {
+        if (request.NumDisks <= 0 || request.NumPegs <= 0)
+            return BadRequest(new { message = "Number of pegs and disks must be positive." });
+
+        try
         {
-            if (request.NumDisks <= 0 || request.NumPegs <= 0)
-                return BadRequest(new { message = "Number of pegs and disks must be positive." });
+            var response = _service.CheckUserMoves(request);
 
-            try
+            var result = new
             {
-                // Call service to validate moves
-                var response = _service.CheckUserMoves(request);
+                correctMoves = response.CorrectMoves,
+                correctSequence = response.CorrectSequence,
+                optimalMoves = response.OptimalMoves,
+                correctSequenceList = string.Join(", ", response.CorrectSequenceList),
+                algorithmName = response.AlgorithmName,
+                algorithmTimeMs = response.AlgorithmTimeMs,
+                benchmarkTimings = response.BenchmarkTimings
+            };
 
-                // Ensure response contains correct format
-                var result = new
-                {
-                    correctMoves = response.CorrectMoves,
-                    correctSequence = response.CorrectSequence,
-                    optimalMoves = response.OptimalMoves,
-                    correctSequenceList = string.Join(", ", response.CorrectSequenceList)
-                };
-
-                return Ok(result);
-            }
-            catch (Exception ex)
-            {
-                return BadRequest(new { message = ex.Message });
-            }
+            return Ok(result);
         }
+        catch (Exception ex)
+        {
+            return BadRequest(new { message = ex.Message });
+        }
+    }
+
     }
 }
