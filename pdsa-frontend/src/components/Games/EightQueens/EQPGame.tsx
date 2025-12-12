@@ -1,5 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import GameResultDialog from "../../Common/GameResultDialog";
+import ConfirmDialog from "../../Common/ConfirmDialog";
 import "./EQPGame.css";
 
 type Cell = {
@@ -36,6 +38,15 @@ const EQPGame: React.FC = () => {
   const [loading, setLoading] = useState<boolean>(false);
   const [solutionInfo, setSolutionInfo] = useState<EQPSolutionDto | null>(null);
 
+  // Game progress tracking
+  const [passedRounds, setPassedRounds] = useState<number>(0);
+  const [failedRounds, setFailedRounds] = useState<number>(0);
+
+  // Result dialog state
+  const [showResultDialog, setShowResultDialog] = useState<boolean>(false);
+  const [currentResult, setCurrentResult] = useState<'pass' | 'fail'>('fail');
+  const [showConfirmDialog, setShowConfirmDialog] = useState<boolean>(false);
+
   // Get player name from sessionStorage
   const playerName = sessionStorage.getItem('currentPlayerName') || 'Anonymous';
 
@@ -52,6 +63,7 @@ const EQPGame: React.FC = () => {
   const createNewGame = async () => {
     setLoading(true);
     setMessage("");
+    setShowResultDialog(false);
     try {
       const res = await fetch(`${API_BASE}/api/eqp/new-game`, {
         method: "POST",
@@ -68,6 +80,32 @@ const EQPGame: React.FC = () => {
     } finally {
       setLoading(false);
     }
+  };
+
+  const handleNextRound = () => {
+    setShowResultDialog(false);
+    createNewGame();
+  };
+
+  const handleBackToGames = () => {
+    if (passedRounds > 0 || failedRounds > 0) {
+      setShowConfirmDialog(true);
+    } else {
+      navigate('/');
+    }
+  };
+
+  const handleConfirmLeave = () => {
+    setShowConfirmDialog(false);
+    navigate('/');
+  };
+
+  const handleCancelLeave = () => {
+    setShowConfirmDialog(false);
+  };
+
+  const handleResultBackToGames = () => {
+    navigate('/games');
   };
 
   const toggleQueen = (r: number, c: number) => {
@@ -120,9 +158,25 @@ const EQPGame: React.FC = () => {
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data || "Server error");
-      setMessage(data.message || (data.isCorrect ? "Correct solution!" : "Incorrect solution."));
+      
+      // Show result dialog
+      const isCorrect = data.isCorrect || false;
+      setCurrentResult(isCorrect ? 'pass' : 'fail');
+      setShowResultDialog(true);
+      
+      // Update progress counters
+      if (isCorrect) {
+        setPassedRounds(prev => prev + 1);
+      } else {
+        setFailedRounds(prev => prev + 1);
+      }
+      
+      setMessage(data.message || (isCorrect ? "Correct solution!" : "Incorrect solution."));
     } catch (err: any) {
       console.error(err);
+      setCurrentResult('fail');
+      setShowResultDialog(true);
+      setFailedRounds(prev => prev + 1);
       setMessage(err?.message || "Failed to submit solution.");
     } finally {
       setLoading(false);
@@ -142,7 +196,14 @@ const EQPGame: React.FC = () => {
       if (!res.ok) throw new Error("Failed to solve");
       const data = await res.json();
       setSolutionInfo(data);
-      setMessage(`Found ${data.totalSolutionsSequential} solutions (sequential).`);
+      
+      // Scroll to solution info after a short delay
+      setTimeout(() => {
+        const solutionSection = document.querySelector('.eqp-solution-info');
+        if (solutionSection) {
+          solutionSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+      }, 300);
     } catch (err) {
       console.error(err);
       setMessage("Failed to run solver.");
@@ -154,7 +215,7 @@ const EQPGame: React.FC = () => {
   return (
     <div className="eqp-game">
       <div className="eqp-nav">
-        <button onClick={() => navigate('/')} className="eqp-back-btn">
+        <button onClick={handleBackToGames} className="eqp-back-btn">
           ← Back to Games
         </button>
       </div>
@@ -162,60 +223,101 @@ const EQPGame: React.FC = () => {
       <div className="eqp-header">
         <h1>♟️ Eight Queens Puzzle</h1>
         <p>Place 8 queens so no two attack each other. Submit your solution or let the solver find all solutions.</p>
+        
+        <div className="eqp-game-stats">
+          <div className="player-info">
+            <span className="player-label">Player:</span>
+            <span className="player-name">{playerName}</span>
+          </div>
+          
+          <div className="game-progress">
+            <div className="progress-item passed">
+              <span className="progress-label">Passed:</span>
+              <span className="progress-value">{passedRounds}</span>
+            </div>
+            <div className="progress-item failed">
+              <span className="progress-label">Failed:</span>
+              <span className="progress-value">{failedRounds}</span>
+            </div>
+          </div>
+        </div>
+
         <div className="eqp-controls">
-          <button onClick={createNewGame} disabled={loading}>New Game</button>
           <button onClick={solveAll} disabled={loading}>Run Solver (Sequential & Threaded)</button>
         </div>
       </div>
 
-      {message && <div className="eqp-message">{message}</div>}
-
       {gameRound && (
-        <div className="eqp-board-area">
-          <div className="eqp-board">
-            {board.map((row, r) => (
-              <div key={r} className="eqp-row">
-                {row.map((cell, c) => (
-                  <button
-                    key={c}
-                    className={`eqp-cell ${cell.hasQueen ? "queen" : ""} ${(r + c) % 2 === 0 ? "light" : "dark"} ${!canPlaceQueen(r, c) ? "disabled" : ""}`}
-                    onClick={() => toggleQueen(r, c)}
-                  >
-                    <span>{cell.hasQueen ? "♛" : "\u200B"}</span>
-                  </button>
+        <>
+          <div className="eqp-board-container">
+            <div className="eqp-board">
+              {board.map((row, r) => (
+                <div key={r} className="eqp-row">
+                  {row.map((cell, c) => (
+                    <button
+                      key={c}
+                      className={`eqp-cell ${cell.hasQueen ? "queen" : ""} ${(r + c) % 2 === 0 ? "light" : "dark"} ${!canPlaceQueen(r, c) ? "disabled" : ""}`}
+                      onClick={() => toggleQueen(r, c)}
+                    >
+                      <span>{cell.hasQueen ? "♛" : "\u200B"}</span>
+                    </button>
+                  ))}
+                </div>
+              ))}
+            </div>
+            
+            <div className="eqp-submit-section">
+              <button className="eqp-submit-btn" onClick={submitPlayerSolution} disabled={loading}>
+                Submit Solution
+              </button>
+            </div>
+          </div>
+
+          {solutionInfo && (
+            <div className="eqp-solution-info">
+              <h3>Solver Results</h3>
+              <div className="solver-summary">
+                <div className="summary-item">
+                  <span className="summary-label">Sequential Found:</span>
+                  <span className="summary-value">{solutionInfo.totalSolutionsSequential}</span>
+                </div>
+                <div className="summary-item">
+                  <span className="summary-label">Threaded Found:</span>
+                  <span className="summary-value">{solutionInfo.totalSolutionsThreaded}</span>
+                </div>
+              </div>
+              <div className="eqp-alg-results">
+                {solutionInfo.algorithmResults.map((r, i) => (
+                  <div key={i} className="eqp-alg-card">
+                    <h4>{r.algorithmName}</h4>
+                    <p>Solutions: {r.solutionsFound}</p>
+                    <p>Time: {r.executionTimeMs} ms</p>
+                  </div>
                 ))}
               </div>
-            ))}
-          </div>
-
-          <div className="eqp-actions">
-            <div className="player-info">
-              <span className="player-label">Player:</span>
-              <span className="player-name">{playerName}</span>
             </div>
-            <button onClick={submitPlayerSolution} disabled={loading}>Submit Solution</button>
-
-            <div className="eqp-solution-info">
-              {solutionInfo && (
-                <>
-                  <h3>Solver Results</h3>
-                  <p>Sequential found: {solutionInfo.totalSolutionsSequential}</p>
-                  <p>Threaded found: {solutionInfo.totalSolutionsThreaded}</p>
-                  <div className="eqp-alg-results">
-                    {solutionInfo.algorithmResults.map((r, i) => (
-                      <div key={i} className="eqp-alg-card">
-                        <h4>{r.algorithmName}</h4>
-                        <p>Solutions: {r.solutionsFound}</p>
-                        <p>Time: {r.executionTimeMs} ms</p>
-                      </div>
-                    ))}
-                  </div>
-                </>
-              )}
-            </div>
-          </div>
-        </div>
+          )}
+        </>
       )}
+
+      <GameResultDialog
+        isOpen={showResultDialog}
+        result={currentResult}
+        onNextRound={handleNextRound}
+        onBackToGames={handleResultBackToGames}
+        passedCount={passedRounds}
+        failedCount={failedRounds}
+      />
+
+      <ConfirmDialog
+        isOpen={showConfirmDialog}
+        title="Leave Game?"
+        message="Are you sure you want to leave? Your game progress will be lost."
+        confirmText="Leave"
+        cancelText="Stay"
+        onConfirm={handleConfirmLeave}
+        onCancel={handleCancelLeave}
+      />
 
       <div className="eqp-footer">
         <small>Board size: {gameRound?.boardSize ?? "-"}</small>

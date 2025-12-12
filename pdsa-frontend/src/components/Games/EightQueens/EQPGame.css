@@ -52,6 +52,89 @@
   opacity: 0.9;
 }
 
+/* Player Info Styles */
+.player-info {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 18px;
+  background: rgba(255, 255, 255, 0.12);
+  border-radius: 8px;
+  border: 1.5px solid rgba(255, 255, 255, 0.3);
+  -webkit-backdrop-filter: blur(10px);
+  backdrop-filter: blur(10px);
+}
+
+.player-label {
+  font-weight: 600;
+  color: #ffffff;
+  text-transform: uppercase;
+  font-size: 0.75rem;
+  letter-spacing: 0.5px;
+}
+
+.player-name {
+  font-weight: 700;
+  color: #ffffff;
+  font-size: 1rem;
+  padding: 3px 10px;
+  background: rgba(255, 255, 255, 0.2);
+  border-radius: 6px;
+}
+
+/* Game Stats */
+.eqp-game-stats {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 30px;
+  flex-wrap: wrap;
+  margin-bottom: 20px;
+}
+
+.game-progress {
+  display: flex;
+  gap: 20px;
+  align-items: center;
+}
+
+.progress-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 16px;
+  background: rgba(255, 255, 255, 0.12);
+  border-radius: 8px;
+  border: 1.5px solid rgba(255, 255, 255, 0.3);
+}
+
+.progress-item.passed {
+  border-color: rgba(34, 197, 94, 0.5);
+  background: rgba(34, 197, 94, 0.1);
+}
+
+.progress-item.failed {
+  border-color: rgba(239, 68, 68, 0.5);
+  background: rgba(239, 68, 68, 0.1);
+}
+
+.progress-label {
+  font-weight: 600;
+  color: #ffffff;
+  text-transform: uppercase;
+  font-size: 0.75rem;
+  letter-spacing: 0.5px;
+}
+
+.progress-value {
+  font-weight: 700;
+  color: #ffffff;
+  font-size: 1rem;
+  padding: 2px 8px;
+  background: rgba(255, 255, 255, 0.15);
+  border-radius: 4px;
+}
+
 .eqp-controls {
   margin-top: 12px;
   display: flex;
@@ -92,17 +175,18 @@
   font-weight: 500;
 }
 
-/* Board Area */
-.eqp-board-area {
-  display: grid;
-  grid-template-columns: auto 1fr;
-  gap: 30px;
-  align-items: start;
+/* Board Container - Centered Layout */
+.eqp-board-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 24px;
   background: white;
   border-radius: 16px;
-  padding: 32px;
+  padding: 40px;
   box-shadow: 0 8px 32px rgba(0, 0, 0, 0.12);
   border: 1px solid #e5e7eb;
+  margin-bottom: 30px;
 }
 
 .eqp-board {
@@ -198,6 +282,40 @@
 .eqp-cell.disabled:hover {
   transform: none !important;
   box-shadow: none !important;
+}
+
+.eqp-submit-section {
+  width: 100%;
+  max-width: 500px;
+  display: flex;
+  justify-content: center;
+  margin: 0 auto;
+}
+
+.eqp-submit-btn {
+  flex: 1;
+  padding: 16px 32px;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  border: none;
+  border-radius: 12px;
+  font-size: 16px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+}
+
+.eqp-submit-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(102, 126, 234, 0.6);
+  background: linear-gradient(135deg, #5568d3 0%, #6b3f94 100%);
+}
+
+.eqp-submit-btn:active {
+  transform: translateY(0);
 }
 
 .eqp-cell.queen {
@@ -322,15 +440,55 @@
 
 /* Solution Info */
 .eqp-solution-info {
-  margin-top: 20px;
+  margin-top: 40px;
   width: 100%;
+  max-width: 1400px;
+  margin-left: auto;
+  margin-right: auto;
 }
 
 .eqp-solution-info h3 {
-  margin: 0 0 16px 0;
-  color: #1f2937;
-  font-size: 1.3rem;
-  font-weight: 600;
+  margin: 0 0 24px 0;
+  color: #667eea;
+  font-size: 1.5rem;
+  font-weight: 700;
+  text-align: center;
+}
+
+.solver-summary {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 20px;
+  margin-bottom: 32px;
+  padding: 24px;
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+}
+
+.summary-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  padding: 16px;
+  background: linear-gradient(135deg, #f9fafb 0%, #f3f4f6 100%);
+  border-radius: 8px;
+  border: 2px solid #e5e7eb;
+}
+
+.summary-label {
+  font-size: 14px;
+  color: #6b7280;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.summary-value {
+  font-size: 32px;
+  color: #667eea;
+  font-weight: 700;
 }
 
 .eqp-solution-info p {
