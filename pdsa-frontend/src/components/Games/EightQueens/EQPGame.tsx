@@ -105,7 +105,7 @@ const EQPGame: React.FC = () => {
   };
 
   const handleResultBackToGames = () => {
-    navigate('/games');
+    navigate('/');
   };
 
   const toggleQueen = (r: number, c: number) => {
