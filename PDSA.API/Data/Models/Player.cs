@@ -2,6 +2,7 @@ using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 using PDSA.API.Data.Models.TSP;
 using PDSA.API.Data.Models.EightQueens;
+using PDSA.API.Data.Models.TrafficSimulation;
 
 namespace PDSA.API.Data.Models
 {
@@ -19,5 +20,6 @@ namespace PDSA.API.Data.Models
         // Navigation properties
         public virtual ICollection<TSPRound> TSPRounds { get; set; } = new List<TSPRound>();
         public virtual ICollection<EQPSolution> EQPSolutions { get; set; } = new List<EQPSolution>();
+        public virtual ICollection<TrafficRound> TrafficRounds { get; set; } = new List<TrafficRound>();
     }
 }

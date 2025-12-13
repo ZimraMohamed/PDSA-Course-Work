@@ -2,6 +2,7 @@ using Microsoft.EntityFrameworkCore;
 using PDSA.API.Data.Models;
 using PDSA.API.Data.Models.TSP;
 using PDSA.API.Data.Models.EightQueens;
+using PDSA.API.Data.Models.TrafficSimulation;
 
 namespace PDSA.API.Data
 {
@@ -18,6 +19,9 @@ namespace PDSA.API.Data
         public DbSet<TSPAlgoTime> TSPAlgoTimes { get; set; }
         public DbSet<EQPSolution> EQPSolutions { get; set; }
         public DbSet<EQPAlgoTime> EQPAlgoTimes { get; set; }
+        public DbSet<TrafficRound> TrafficRounds { get; set; }
+        public DbSet<TrafficCapacity> TrafficCapacities { get; set; }
+        public DbSet<TrafficAlgoTime> TrafficAlgoTimes { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -116,6 +120,57 @@ namespace PDSA.API.Data
                 entity.Property(e => e.AlgorithmType).IsRequired();
                 entity.Property(e => e.TimeTaken_ms).IsRequired();
                 entity.Property(e => e.RoundNumber).IsRequired();
+            });
+
+            // Configure TrafficRound entity
+            modelBuilder.Entity<TrafficRound>(entity =>
+            {
+                entity.ToTable("TrafficSim_Rounds");
+                entity.HasKey(e => e.RoundID);
+                entity.Property(e => e.RoundID).ValueGeneratedOnAdd();
+                entity.Property(e => e.PlayerID).IsRequired();
+                entity.Property(e => e.CorrectMaxFlow).IsRequired();
+                entity.Property(e => e.DatePlayed).IsRequired();
+
+                // Foreign key relationship
+                entity.HasOne(e => e.Player)
+                    .WithMany(p => p.TrafficRounds)
+                    .HasForeignKey(e => e.PlayerID)
+                    .OnDelete(DeleteBehavior.Cascade);
+            });
+
+            // Configure TrafficCapacity entity
+            modelBuilder.Entity<TrafficCapacity>(entity =>
+            {
+                entity.ToTable("TrafficSim_Capacities");
+                entity.HasKey(e => e.CapacityID);
+                entity.Property(e => e.CapacityID).ValueGeneratedOnAdd();
+                entity.Property(e => e.RoundID).IsRequired();
+                entity.Property(e => e.RoadSegment).IsRequired();
+                entity.Property(e => e.Capacity_VehPerMin).IsRequired();
+
+                // Foreign key relationship
+                entity.HasOne(e => e.Round)
+                    .WithMany(r => r.Capacities)
+                    .HasForeignKey(e => e.RoundID)
+                    .OnDelete(DeleteBehavior.Cascade);
+            });
+
+            // Configure TrafficAlgoTime entity
+            modelBuilder.Entity<TrafficAlgoTime>(entity =>
+            {
+                entity.ToTable("TrafficSim_AlgoTimes");
+                entity.HasKey(e => e.TimeID);
+                entity.Property(e => e.TimeID).ValueGeneratedOnAdd();
+                entity.Property(e => e.RoundID).IsRequired();
+                entity.Property(e => e.AlgorithmName).IsRequired();
+                entity.Property(e => e.TimeTaken_ms).IsRequired();
+
+                // Foreign key relationship
+                entity.HasOne(e => e.Round)
+                    .WithMany(r => r.AlgorithmTimes)
+                    .HasForeignKey(e => e.RoundID)
+                    .OnDelete(DeleteBehavior.Cascade);
             });
         }
     }
