@@ -8,9 +8,13 @@
 /* Navigation */
 .tohp-nav {
   margin-bottom: 20px;
+  display: flex;
+  justify-content: space-between;
+  gap: 15px;
 }
 
-.tohp-back-btn {
+.tohp-back-btn,
+.tohp-stats-btn {
   background: #6b7280;
   border: none;
   color: white;
@@ -25,9 +29,21 @@
   line-height: 1.2;
 }
 
+.tohp-stats-btn {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+}
+
+.tohp-back-btn:hover,
+.tohp-stats-btn:hover {
+  transform: translateY(-1px);
+}
+
 .tohp-back-btn:hover {
   background: #4b5563;
-  transform: translateY(-1px);
+}
+
+.tohp-stats-btn:hover {
+  background: linear-gradient(135deg, #5568d3 0%, #653a8b 100%);
 }
 
 /* Header Section */

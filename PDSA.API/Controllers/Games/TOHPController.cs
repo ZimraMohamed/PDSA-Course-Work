@@ -205,5 +205,33 @@ namespace PDSA.API.Controllers.Games
                 return StatusCode(500, new { message = "An error occurred", error = ex.Message });
             }
         }
+
+        [HttpGet("leaderboard")]
+        public IActionResult GetLeaderboard([FromQuery] int top = 10)
+        {
+            try
+            {
+                var leaderboard = _context.Players
+                    .Include(p => p.HanoiRounds)
+                    .Where(p => p.HanoiRounds.Any())
+                    .Select(p => new
+                    {
+                        playerName = p.Name,
+                        totalGames = p.HanoiRounds.Count,
+                        averageMoves = (int)p.HanoiRounds.Average(r => r.CorrectMoves_Count),
+                        bestMoves = p.HanoiRounds.Min(r => r.CorrectMoves_Count),
+                        lastPlayed = p.HanoiRounds.OrderByDescending(r => r.DatePlayed).First().DatePlayed
+                    })
+                    .OrderBy(l => l.averageMoves)  // Lower moves is better
+                    .Take(top)
+                    .ToList();
+
+                return Ok(leaderboard);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { message = "An error occurred", error = ex.Message });
+            }
+        }
     }
 }
