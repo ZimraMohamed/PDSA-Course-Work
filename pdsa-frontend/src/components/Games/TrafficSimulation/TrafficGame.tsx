@@ -10,25 +10,22 @@ type CapacityMap = Record<string, number>;
 
 // Backend Response Type
 interface ApiResponse {
-  MaxFlow?: number;
-  ExecutionTimeMs?: number;
-
   correctAnswer?: number;
-  correct_answer?: number;
-
   playerAnswer?: number;
-  player_answer?: number;
-  player_guess?: number;
-
+  edmondsKarpTime?: number;
+  dinicTime?: number;
   status?: string;
+  message?: string;
 }
 
 // Normalized Result
 interface TrafficResult {
   playerAnswer: number;
   correctAnswer: number;
-  timeTaken: number;
+  edmondsKarpTime: number;
+  dinicTime: number;
   status: string;
+  message?: string;
 }
 
 const edges: [string, string][] = [
@@ -106,7 +103,7 @@ export default function TrafficGame() {
     navigate('/');
   };
 
-  // ------------ SUBMIT ANSWER (Updated PascalCase Payload) ------------
+  // ------------ SUBMIT ANSWER (Updated to use submit-answer endpoint) ------------
   const submitAnswer = async () => {
     if (!playerAnswer || playerAnswer.trim() === "") {
       alert("Please enter your answer.");
@@ -126,33 +123,19 @@ export default function TrafficGame() {
       };
 
       const response = await axios.post<ApiResponse>(
-        "http://localhost:5007/api/traffic/maxflow",
+        "http://localhost:5007/api/traffic/submit-answer",
         payload
       );
 
       const d = response.data;
 
       const normalized: TrafficResult = {
-        playerAnswer:
-          d.playerAnswer ??
-          d.player_answer ??
-          d.player_guess ??
-          Number(playerAnswer),
-
-        correctAnswer:
-          d.correctAnswer ??
-          d.correct_answer ??
-          d.MaxFlow ??
-          0,
-
-        timeTaken: d.ExecutionTimeMs ?? 0,
-
-        status:
-          d.status ??
-          (Number(playerAnswer) ===
-          (d.correctAnswer ?? d.MaxFlow ?? 0)
-            ? "Correct"
-            : "Wrong"),
+        playerAnswer: d.playerAnswer ?? Number(playerAnswer),
+        correctAnswer: d.correctAnswer ?? 0,
+        edmondsKarpTime: d.edmondsKarpTime ?? 0,
+        dinicTime: d.dinicTime ?? 0,
+        status: d.status ?? "Unknown",
+        message: d.message
       };
 
       setResult(normalized);
@@ -225,18 +208,121 @@ export default function TrafficGame() {
               <div className="traffic-left-panel">
                 <div className="panel-header">
                   <h3>Traffic Network</h3>
-                </div>
-                <div className="graph-container">
-                  {edges.map(([u, v]) => (
-                    <div key={u + v} className="edge-card">
-                      <div className="edge-nodes">
-                        <span className="node-label">{u}</span>
-                        <span className="edge-arrow">→</span>
-                        <span className="node-label">{v}</span>
-                      </div>
-                      <span className="capacity-value">{capacities[`${u}-${v}`]}</span>
+                  <div className="header-legend">
+                    <div className="legend-item">
+                      <div className="legend-icon node-icon source"></div>
+                      <span>Source/Target</span>
                     </div>
-                  ))}
+                    <div className="legend-item">
+                      <div className="legend-icon node-icon intermediate"></div>
+                      <span>Intermediate Node</span>
+                    </div>
+                    <div className="legend-item">
+                      <div className="legend-icon capacity-icon"></div>
+                      <span>Edge Capacity</span>
+                    </div>
+                  </div>
+                </div>
+                <div className="network-visualization">
+                  <svg viewBox="0 0 900 550" className="network-svg" preserveAspectRatio="xMidYMid meet">
+                    {/* Define arrow markers */}
+                    <defs>
+                      <marker id="arrowhead" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto">
+                        <polygon points="0 0, 10 3, 0 6" fill="#06b6d4" />
+                      </marker>
+                    </defs>
+                    
+                    {/* Node positions */}
+                    {(() => {
+                      const nodePositions: Record<string, [number, number]> = {
+                        'A': [80, 325],
+                        'B': [250, 150],
+                        'C': [250, 325],
+                        'D': [250, 500],
+                        'E': [450, 200],
+                        'F': [450, 450],
+                        'G': [650, 250],
+                        'H': [650, 400],
+                        'T': [820, 325]
+                      };
+                      
+                      return (
+                        <>
+                          {/* Draw edges */}
+                          {edges.map(([u, v]) => {
+                            const [x1, y1] = nodePositions[u];
+                            const [x2, y2] = nodePositions[v];
+                            const midX = (x1 + x2) / 2;
+                            const midY = (y1 + y2) / 2;
+                            
+                            return (
+                              <g key={`${u}-${v}`}>
+                                <line
+                                  x1={x1}
+                                  y1={y1}
+                                  x2={x2}
+                                  y2={y2}
+                                  stroke="#06b6d4"
+                                  strokeWidth="3"
+                                  markerEnd="url(#arrowhead)"
+                                  className="network-edge"
+                                />
+                                <circle
+                                  cx={midX}
+                                  cy={midY}
+                                  r="18"
+                                  fill="#f97316"
+                                  className="capacity-circle"
+                                />
+                                <text
+                                  x={midX}
+                                  y={midY + 5}
+                                  textAnchor="middle"
+                                  fill="white"
+                                  fontSize="14"
+                                  fontWeight="bold"
+                                  className="capacity-text"
+                                >
+                                  {capacities[`${u}-${v}`]}
+                                </text>
+                              </g>
+                            );
+                          })}
+                          
+                          {/* Draw nodes */}
+                          {Object.entries(nodePositions).map(([node, [x, y]]) => (
+                            <g key={node}>
+                              <circle
+                                cx={x}
+                                cy={y}
+                                r="35"
+                                fill={node === 'A' || node === 'T' ? '#667eea' : '#ffffff'}
+                                stroke={node === 'A' || node === 'T' ? '#764ba2' : '#06b6d4'}
+                                strokeWidth="3"
+                                className="network-node"
+                              />
+                              <text
+                                x={x}
+                                y={y + 6}
+                                textAnchor="middle"
+                                fill={node === 'A' || node === 'T' ? '#ffffff' : '#1f2937'}
+                                fontSize="20"
+                                fontWeight="bold"
+                              >
+                                {node}
+                              </text>
+                              {node === 'A' && (
+                                <text x={x} y={y + 55} textAnchor="middle" fontSize="12" fill="#667eea" fontWeight="600">Source</text>
+                              )}
+                              {node === 'T' && (
+                                <text x={x} y={y + 55} textAnchor="middle" fontSize="12" fill="#667eea" fontWeight="600">Target</text>
+                              )}
+                            </g>
+                          ))}
+                        </>
+                      );
+                    })()}
+                  </svg>
                 </div>
               </div>
 
@@ -262,6 +348,39 @@ export default function TrafficGame() {
                     </button>
                   </div>
                 </div>
+
+                {result && (
+                  <div className="traffic-result-section">
+                    <h3>Results</h3>
+                    <div className="result-grid">
+                      <div className="result-item">
+                        <span className="result-label">Your Answer:</span>
+                        <span className="result-value">{result.playerAnswer}</span>
+                      </div>
+                      <div className="result-item">
+                        <span className="result-label">Correct Answer:</span>
+                        <span className="result-value">{result.correctAnswer}</span>
+                      </div>
+                      <div className="result-item">
+                        <span className="result-label">Status:</span>
+                        <span className={`result-value ${result.status.toLowerCase()}`}>
+                          {result.status}
+                        </span>
+                      </div>
+                      <div className="result-item full-width">
+                        <span className="result-label">Algorithm Performance:</span>
+                      </div>
+                      <div className="result-item">
+                        <span className="result-label">Edmonds-Karp:</span>
+                        <span className="result-value">{result.edmondsKarpTime}ms</span>
+                      </div>
+                      <div className="result-item">
+                        <span className="result-label">Dinic's:</span>
+                        <span className="result-value">{result.dinicTime}ms</span>
+                      </div>
+                    </div>
+                  </div>
+                )}
               </div>
             </div>
           </>
