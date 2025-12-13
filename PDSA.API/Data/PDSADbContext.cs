@@ -3,6 +3,7 @@ using PDSA.API.Data.Models;
 using PDSA.API.Data.Models.TSP;
 using PDSA.API.Data.Models.EightQueens;
 using PDSA.API.Data.Models.TrafficSimulation;
+using PDSA.API.Data.Models.TowerOfHanoi;
 
 namespace PDSA.API.Data
 {
@@ -22,6 +23,8 @@ namespace PDSA.API.Data
         public DbSet<TrafficRound> TrafficRounds { get; set; }
         public DbSet<TrafficCapacity> TrafficCapacities { get; set; }
         public DbSet<TrafficAlgoTime> TrafficAlgoTimes { get; set; }
+        public DbSet<HanoiRound> HanoiRounds { get; set; }
+        public DbSet<HanoiAlgoTime> HanoiAlgoTimes { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -160,6 +163,43 @@ namespace PDSA.API.Data
             modelBuilder.Entity<TrafficAlgoTime>(entity =>
             {
                 entity.ToTable("TrafficSim_AlgoTimes");
+                entity.HasKey(e => e.TimeID);
+                entity.Property(e => e.TimeID).ValueGeneratedOnAdd();
+                entity.Property(e => e.RoundID).IsRequired();
+                entity.Property(e => e.AlgorithmName).IsRequired();
+                entity.Property(e => e.TimeTaken_ms).IsRequired();
+
+                // Foreign key relationship
+                entity.HasOne(e => e.Round)
+                    .WithMany(r => r.AlgorithmTimes)
+                    .HasForeignKey(e => e.RoundID)
+                    .OnDelete(DeleteBehavior.Cascade);
+            });
+
+            // Configure HanoiRound entity
+            modelBuilder.Entity<HanoiRound>(entity =>
+            {
+                entity.ToTable("Hanoi_Rounds");
+                entity.HasKey(e => e.RoundID);
+                entity.Property(e => e.RoundID).ValueGeneratedOnAdd();
+                entity.Property(e => e.PlayerID).IsRequired();
+                entity.Property(e => e.NumDisks_N).IsRequired();
+                entity.Property(e => e.NumPegs).IsRequired();
+                entity.Property(e => e.CorrectMoves_Count).IsRequired();
+                entity.Property(e => e.CorrectMoves_Sequence).IsRequired();
+                entity.Property(e => e.DatePlayed).IsRequired();
+
+                // Foreign key relationship
+                entity.HasOne(e => e.Player)
+                    .WithMany(p => p.HanoiRounds)
+                    .HasForeignKey(e => e.PlayerID)
+                    .OnDelete(DeleteBehavior.Cascade);
+            });
+
+            // Configure HanoiAlgoTime entity
+            modelBuilder.Entity<HanoiAlgoTime>(entity =>
+            {
+                entity.ToTable("Hanoi_AlgoTimes");
                 entity.HasKey(e => e.TimeID);
                 entity.Property(e => e.TimeID).ValueGeneratedOnAdd();
                 entity.Property(e => e.RoundID).IsRequired();

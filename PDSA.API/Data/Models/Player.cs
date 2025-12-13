@@ -3,6 +3,7 @@ using System.ComponentModel.DataAnnotations.Schema;
 using PDSA.API.Data.Models.TSP;
 using PDSA.API.Data.Models.EightQueens;
 using PDSA.API.Data.Models.TrafficSimulation;
+using PDSA.API.Data.Models.TowerOfHanoi;
 
 namespace PDSA.API.Data.Models
 {
@@ -21,5 +22,6 @@ namespace PDSA.API.Data.Models
         public virtual ICollection<TSPRound> TSPRounds { get; set; } = new List<TSPRound>();
         public virtual ICollection<EQPSolution> EQPSolutions { get; set; } = new List<EQPSolution>();
         public virtual ICollection<TrafficRound> TrafficRounds { get; set; } = new List<TrafficRound>();
+        public virtual ICollection<HanoiRound> HanoiRounds { get; set; } = new List<HanoiRound>();
     }
 }

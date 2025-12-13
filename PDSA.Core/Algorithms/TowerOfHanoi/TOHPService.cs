@@ -58,20 +58,28 @@ namespace PDSA.API.Services
         // Check user move count
         bool correctMoves = request.UserMovesCount == optimalMoves;
 
-        // Check user sequence
+        // Check user sequence - validate if it actually solves the puzzle correctly
         var userSequenceList = request.UserSequence
                                       .Split(',', StringSplitOptions.RemoveEmptyEntries)
                                       .Select(m => m.Trim())
                                       .ToList();
-        bool correctSequence = userSequenceList.SequenceEqual(optimalSequence);
+        
+        // Determine source and target based on number of pegs
+        char source = 'A';
+        char target = request.NumPegs == 3 ? 'C' : 'D';
+        
+        // Use validator to check if sequence is actually correct (not just matching our algorithm)
+        bool correctSequence = TOHPSolver.ValidateSequence(userSequenceList, request.NumDisks, request.NumPegs, source, target);
 
         string message;
         if (correctMoves && correctSequence)
             message = "Move count and sequence are correct! ✅";
-        else if (!correctMoves)
-            message = $"Incorrect number of moves. Optimal moves: {optimalMoves}";
+        else if (!correctMoves && correctSequence)
+            message = $"Sequence is valid but not optimal. Optimal moves: {optimalMoves}, Your moves: {request.UserMovesCount}";
+        else if (correctMoves && !correctSequence)
+            message = $"Move count is correct but sequence is invalid (doesn't solve the puzzle correctly).";
         else
-            message = $"Move count correct, but sequence is wrong.";
+            message = $"Both move count and sequence are incorrect. Optimal moves: {optimalMoves}";
 
         return new TOHPResponse
         {

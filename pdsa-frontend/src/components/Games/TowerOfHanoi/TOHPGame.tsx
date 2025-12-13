@@ -93,24 +93,19 @@ const TOHPGame: React.FC = () => {
       window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' });
     }, 300);
 
-    // Validate mandatory fields
-    if (!userMovesCount.trim() || !userSequence.trim()) {
-        alert("Please fill in both Number of Moves and Sequence of Moves.");
-        return;
-    }
-
     console.log("Submitting moves count:", userMovesCount);
     console.log("Submitting sequence:", userSequence);
 
     try {
-        const res = await fetch("http://localhost:5007/api/TOHP/check-moves", {
+        const res = await fetch("http://localhost:5007/api/TOHP/submit-answer", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({
                 numPegs,
                 numDisks,
                 userMovesCount: parseInt(userMovesCount, 10),
-                userSequence
+                userSequence,
+                playerName
             })
         });
 
@@ -403,7 +398,11 @@ const TOHPGame: React.FC = () => {
               />
             </div>
 
-            <button type="submit" className="tohp-check-btn">
+            <button 
+              type="submit" 
+              className="tohp-check-btn"
+              disabled={!userMovesCount.trim() || !userSequence.trim()}
+            >
               Check Answer
             </button>
           </div>

@@ -146,5 +146,95 @@ namespace PDSA.Core.Algorithms.TowerOfHanoi
             // Step 3: Move k disks from aux1 to target
             Solve4Pegs_Balanced_Helper(k, a1, t, s, a2, moves);
         }
+
+        /* ============================================================
+           SEQUENCE VALIDATOR
+           Validates if a user's move sequence is actually correct
+           (solves the puzzle legally) rather than just comparing strings
+           ============================================================ */
+
+        public static bool ValidateSequence(List<string> userMoves, int numDisks, int numPegs, char source, char target)
+        {
+            if (userMoves == null || userMoves.Count == 0)
+                return false;
+
+            // Initialize pegs with stacks
+            var pegs = new Dictionary<char, Stack<int>>();
+            
+            // Create pegs based on numPegs (3 or 4)
+            pegs[source] = new Stack<int>();
+            pegs[target] = new Stack<int>();
+            
+            if (numPegs == 3)
+            {
+                // For 3 pegs: A, C, and one auxiliary (B)
+                char aux = 'B';
+                if (source == 'B' || target == 'B') aux = 'C';
+                if (source == 'C' || target == 'C') aux = 'B';
+                pegs[aux] = new Stack<int>();
+            }
+            else if (numPegs == 4)
+            {
+                // For 4 pegs: A, D, and two auxiliaries (B, C)
+                pegs['B'] = new Stack<int>();
+                pegs['C'] = new Stack<int>();
+            }
+            else
+            {
+                return false;
+            }
+
+            // Place all disks on source peg (largest at bottom)
+            for (int i = numDisks; i >= 1; i--)
+            {
+                pegs[source].Push(i);
+            }
+
+            // Process each move
+            foreach (var move in userMoves)
+            {
+                // Parse move (format: "A → B" or "A→B")
+                var parts = move.Split(new[] { '→', '-', '>' }, StringSplitOptions.RemoveEmptyEntries);
+                if (parts.Length != 2)
+                    return false;
+
+                char from = parts[0].Trim()[0];
+                char to = parts[1].Trim()[0];
+
+                // Check if pegs exist
+                if (!pegs.ContainsKey(from) || !pegs.ContainsKey(to))
+                    return false;
+
+                // Check if source peg has a disk
+                if (pegs[from].Count == 0)
+                    return false;
+
+                // Get disk from source
+                int disk = pegs[from].Peek();
+
+                // Check if move is legal (can't place larger disk on smaller disk)
+                if (pegs[to].Count > 0 && pegs[to].Peek() < disk)
+                    return false;
+
+                // Make the move
+                pegs[from].Pop();
+                pegs[to].Push(disk);
+            }
+
+            // Check if all disks are on the target peg
+            if (pegs[target].Count != numDisks)
+                return false;
+
+            // Check if disks are in correct order (largest at bottom)
+            var targetStack = pegs[target].ToArray();
+            for (int i = 0; i < targetStack.Length - 1; i++)
+            {
+                if (targetStack[i] > targetStack[i + 1])
+                    return false;
+            }
+
+            // All checks passed - sequence is valid!
+            return true;
+        }
     }
 }
