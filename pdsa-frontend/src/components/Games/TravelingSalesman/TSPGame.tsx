@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import ConfirmDialog from '../../Common/ConfirmDialog';
 import GameResultDialog from '../../Common/GameResultDialog';
@@ -52,6 +52,8 @@ const TSPGame: React.FC = () => {
   const [showConfirmDialog, setShowConfirmDialog] = useState<boolean>(false);
   const [showResultDialog, setShowResultDialog] = useState<boolean>(false);
   const [currentResult, setCurrentResult] = useState<'pass' | 'fail' | 'draw'>('pass');
+
+  const distanceMatrixRef = useRef<HTMLDivElement>(null);
 
   const API_BASE_URL = 'http://localhost:5007';
   const cities = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J'];
@@ -157,6 +159,13 @@ const TSPGame: React.FC = () => {
       const data = await response.json();
       setSolution(data);
       setGameStatus('solved');
+      
+      // Scroll to distance matrix section
+      setTimeout(() => {
+        if (distanceMatrixRef.current) {
+          distanceMatrixRef.current.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+      }, 100);
     } catch (err) {
       setError('Failed to solve TSP. Please try again.');
       console.error(err);
@@ -425,7 +434,7 @@ const TSPGame: React.FC = () => {
           </div>
 
           {/* Distance Matrix */}
-          <div className="tsp-matrix-card">
+          <div className="tsp-matrix-card" ref={distanceMatrixRef}>
             <div className="tsp-card-header">
               <h3>Distance Matrix (km)</h3>
               <p>Distances between selected cities</p>

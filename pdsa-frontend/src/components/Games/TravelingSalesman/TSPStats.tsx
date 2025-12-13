@@ -83,7 +83,8 @@ const TSPStats: React.FC = () => {
 
   const formatRoute = (route: string[], homeCity?: string) => {
     if (homeCity) {
-      return homeCity + ' → ' + route.join(' → ') + ' → ' + homeCity;
+      // Route already includes home city at start, just add it at the end
+      return route.join(' → ') + ' → ' + homeCity;
     }
     return route.join(' → ');
   };
