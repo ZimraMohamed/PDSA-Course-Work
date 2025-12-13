@@ -1,4 +1,8 @@
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
+using PDSA.API.Data;
+using PDSA.API.Data.Models;
+using PDSA.API.Data.Models.TSP;
 using PDSA.Core.Algorithms.TravelingSalesman;
 using System.ComponentModel.DataAnnotations;
 
@@ -9,10 +13,12 @@ namespace PDSA.API.Controllers.Games
     public class TSPController : ControllerBase
     {
         private readonly ILogger<TSPController> _logger;
+        private readonly PDSADbContext _dbContext;
 
-        public TSPController(ILogger<TSPController> logger)
+        public TSPController(ILogger<TSPController> logger, PDSADbContext dbContext)
         {
             _logger = logger;
+            _dbContext = dbContext;
         }
 
         /// <summary>
@@ -126,6 +132,161 @@ namespace PDSA.API.Controllers.Games
             }
         }
 
+        /// <summary>
+        /// Saves TSP game round to database
+        /// </summary>
+        [HttpPost("save-game")]
+        public async Task<ActionResult<SaveGameResultDto>> SaveGame([FromBody] SaveTSPGameRequest request)
+        {
+            try
+            {
+                // Get or create player
+                var player = await _dbContext.Players
+                    .FirstOrDefaultAsync(p => p.Name == request.PlayerName);
+
+                if (player == null)
+                {
+                    player = new Player { Name = request.PlayerName };
+                    _dbContext.Players.Add(player);
+                    await _dbContext.SaveChangesAsync();
+                }
+
+                // Create TSP round
+                var tspRound = new TSPRound
+                {
+                    PlayerID = player.PlayerID,
+                    HomeCity = request.HomeCityName.ToString(),
+                    SelectedCities = string.Join(",", request.SelectedCities),
+                    ShortestRoute_Path = string.Join("->", request.OptimalRoute),
+                    ShortestRoute_Distance = request.OptimalDistance,
+                    DatePlayed = DateTime.UtcNow.ToString("o")
+                };
+
+                _dbContext.TSPRounds.Add(tspRound);
+                await _dbContext.SaveChangesAsync();
+
+                // Save distances for selected cities
+                foreach (var distance in request.Distances)
+                {
+                    var tspDistance = new TSPDistance
+                    {
+                        RoundID = tspRound.RoundID,
+                        City_A = distance.CityA.ToString(),
+                        City_B = distance.CityB.ToString(),
+                        Distance_km = distance.Distance
+                    };
+                    _dbContext.TSPDistances.Add(tspDistance);
+                }
+
+                // Save algorithm execution times
+                foreach (var algoResult in request.AlgorithmResults)
+                {
+                    var algoTime = new TSPAlgoTime
+                    {
+                        RoundID = tspRound.RoundID,
+                        AlgorithmName = algoResult.AlgorithmName,
+                        TimeTaken_ms = algoResult.ExecutionTimeMs
+                    };
+                    _dbContext.TSPAlgoTimes.Add(algoTime);
+                }
+
+                await _dbContext.SaveChangesAsync();
+
+                return Ok(new SaveGameResultDto
+                {
+                    Success = true,
+                    RoundId = tspRound.RoundID,
+                    PlayerId = player.PlayerID,
+                    Message = "Game saved successfully"
+                });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error saving TSP game");
+                return StatusCode(500, new SaveGameResultDto
+                {
+                    Success = false,
+                    Message = "Failed to save game"
+                });
+            }
+        }
+
+        /// <summary>
+        /// Gets player game history
+        /// </summary>
+        [HttpGet("player-history/{playerName}")]
+        public async Task<ActionResult<List<TSPRoundHistoryDto>>> GetPlayerHistory(string playerName)
+        {
+            try
+            {
+                var player = await _dbContext.Players
+                    .Include(p => p.TSPRounds)
+                        .ThenInclude(r => r.Distances)
+                    .Include(p => p.TSPRounds)
+                        .ThenInclude(r => r.AlgorithmTimes)
+                    .FirstOrDefaultAsync(p => p.Name == playerName);
+
+                if (player == null)
+                {
+                    return Ok(new List<TSPRoundHistoryDto>());
+                }
+
+                var history = player.TSPRounds.Select(r => new TSPRoundHistoryDto
+                {
+                    RoundId = r.RoundID,
+                    HomeCity = r.HomeCity,
+                    SelectedCities = r.SelectedCities.Split(',').Select(c => c[0]).ToList(),
+                    ShortestRoute = r.ShortestRoute_Path.Split("->").Select(c => c[0]).ToList(),
+                    ShortestDistance = (int)r.ShortestRoute_Distance,
+                    DatePlayed = DateTime.Parse(r.DatePlayed),
+                    AlgorithmTimes = r.AlgorithmTimes.Select(at => new AlgorithmTimeDto
+                    {
+                        AlgorithmName = at.AlgorithmName,
+                        TimeTakenMs = (long)at.TimeTaken_ms
+                    }).ToList()
+                }).OrderByDescending(r => r.DatePlayed).ToList();
+
+                return Ok(history);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error fetching player history");
+                return StatusCode(500, "Internal server error");
+            }
+        }
+
+        /// <summary>
+        /// Gets leaderboard (top players by average shortest distance)
+        /// </summary>
+        [HttpGet("leaderboard")]
+        public async Task<ActionResult<List<LeaderboardEntryDto>>> GetLeaderboard([FromQuery] int top = 10)
+        {
+            try
+            {
+                var leaderboard = await _dbContext.Players
+                    .Include(p => p.TSPRounds)
+                    .Where(p => p.TSPRounds.Any())
+                    .Select(p => new LeaderboardEntryDto
+                    {
+                        PlayerName = p.Name,
+                        TotalGames = p.TSPRounds.Count,
+                        AverageDistance = (int)p.TSPRounds.Average(r => r.ShortestRoute_Distance),
+                        BestDistance = (int)p.TSPRounds.Min(r => r.ShortestRoute_Distance),
+                        LastPlayed = DateTime.Parse(p.TSPRounds.OrderByDescending(r => r.DatePlayed).First().DatePlayed)
+                    })
+                    .OrderBy(l => l.AverageDistance)
+                    .Take(top)
+                    .ToListAsync();
+
+                return Ok(leaderboard);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error fetching leaderboard");
+                return StatusCode(500, "Internal server error");
+            }
+        }
+
         #region Helper Methods
 
         private static int[][] ConvertDistanceMatrixTo2DArray(int[,] matrix)
@@ -224,6 +385,70 @@ namespace PDSA.API.Controllers.Games
         public int CorrectAnswer { get; set; }
         public int Difference { get; set; }
         public int ToleranceUsed { get; set; }
+    }
+
+    public class SaveTSPGameRequest
+    {
+        [Required]
+        public string PlayerName { get; set; } = "";
+        
+        [Required]
+        public char HomeCityName { get; set; }
+        
+        [Required]
+        public List<char> SelectedCities { get; set; } = new List<char>();
+        
+        [Required]
+        public List<char> OptimalRoute { get; set; } = new List<char>();
+        
+        public int OptimalDistance { get; set; }
+        
+        [Required]
+        public List<DistanceDto> Distances { get; set; } = new List<DistanceDto>();
+        
+        [Required]
+        public List<AlgorithmResultDto> AlgorithmResults { get; set; } = new List<AlgorithmResultDto>();
+    }
+
+    public class DistanceDto
+    {
+        public char CityA { get; set; }
+        public char CityB { get; set; }
+        public int Distance { get; set; }
+    }
+
+    public class SaveGameResultDto
+    {
+        public bool Success { get; set; }
+        public int RoundId { get; set; }
+        public int PlayerId { get; set; }
+        public string Message { get; set; } = "";
+    }
+
+    public class TSPRoundHistoryDto
+    {
+        public int RoundId { get; set; }
+        public string HomeCity { get; set; } = "";
+        public List<char> SelectedCities { get; set; } = new List<char>();
+        public List<char> ShortestRoute { get; set; } = new List<char>();
+        public int ShortestDistance { get; set; }
+        public DateTime DatePlayed { get; set; }
+        public List<AlgorithmTimeDto> AlgorithmTimes { get; set; } = new List<AlgorithmTimeDto>();
+    }
+
+    public class AlgorithmTimeDto
+    {
+        public string AlgorithmName { get; set; } = "";
+        public long TimeTakenMs { get; set; }
+    }
+
+    public class LeaderboardEntryDto
+    {
+        public string PlayerName { get; set; } = "";
+        public int TotalGames { get; set; }
+        public int AverageDistance { get; set; }
+        public int BestDistance { get; set; }
+        public DateTime LastPlayed { get; set; }
     }
 
     #endregion

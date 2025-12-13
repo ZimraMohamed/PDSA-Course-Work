@@ -1,6 +1,6 @@
 import { createBrowserRouter, RouterProvider } from 'react-router-dom';
 import App from './App';
-import { TSPGame } from './components/Games/TravelingSalesman';
+import { TSPGame, TSPStats } from './components/Games/TravelingSalesman';
 import { TrafficGame } from './components/Games/TrafficSimulation';
 import { TOHPGame } from './components/Games/TowerOfHanoi';
 import { EQPGame } from './components/Games/EightQueens';
@@ -23,6 +23,10 @@ const router = createBrowserRouter([
   {
     path: '/games/tsp',
     element: <TSPGame />,
+  },
+  {
+    path: '/games/tsp/stats',
+    element: <TSPStats />,
   },
   {
     path: '/games/eqp',

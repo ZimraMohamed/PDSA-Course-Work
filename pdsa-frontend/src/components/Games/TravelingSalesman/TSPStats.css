@@ -1,0 +1,386 @@
+.tsp-stats {
+  min-height: 100vh;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  padding: 20px;
+}
+
+.tsp-stats-nav {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+}
+
+.tsp-stats-back-btn,
+.tsp-stats-play-btn {
+  padding: 12px 24px;
+  font-size: 16px;
+  font-weight: 500;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  background: white;
+  color: #667eea;
+}
+
+.tsp-stats-back-btn:hover,
+.tsp-stats-play-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+}
+
+.tsp-stats-header {
+  text-align: center;
+  color: white;
+  margin-bottom: 30px;
+}
+
+.tsp-stats-header h1 {
+  font-size: 2.5em;
+  margin: 0 0 10px 0;
+}
+
+.tsp-stats-header p {
+  font-size: 1.1em;
+  opacity: 0.9;
+  margin: 0;
+}
+
+.tsp-stats-tabs {
+  display: flex;
+  justify-content: center;
+  gap: 10px;
+  margin-bottom: 30px;
+}
+
+.tab-btn {
+  padding: 12px 32px;
+  font-size: 16px;
+  font-weight: 500;
+  border: 2px solid white;
+  background: transparent;
+  color: white;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.tab-btn:hover {
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.tab-btn.active {
+  background: white;
+  color: #667eea;
+}
+
+.tsp-stats-error {
+  max-width: 800px;
+  margin: 0 auto 20px;
+  padding: 15px;
+  background: #ff4444;
+  color: white;
+  border-radius: 8px;
+  text-align: center;
+}
+
+.tsp-stats-loading {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 60px 20px;
+  color: white;
+}
+
+.tsp-stats-loading .spinner {
+  width: 50px;
+  height: 50px;
+  border: 4px solid rgba(255, 255, 255, 0.3);
+  border-top-color: white;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+.tsp-stats-content {
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.player-info-card {
+  background: white;
+  padding: 20px;
+  border-radius: 12px;
+  margin-bottom: 20px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+}
+
+.player-info-card h2 {
+  margin: 0 0 10px 0;
+  color: #667eea;
+}
+
+.player-info-card p {
+  margin: 0;
+  color: #666;
+  font-size: 16px;
+}
+
+.no-data {
+  background: white;
+  padding: 60px 20px;
+  border-radius: 12px;
+  text-align: center;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+}
+
+.no-data p {
+  font-size: 18px;
+  color: #666;
+  margin-bottom: 20px;
+}
+
+.play-now-btn {
+  padding: 12px 32px;
+  font-size: 16px;
+  font-weight: 500;
+  border: none;
+  border-radius: 8px;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  cursor: pointer;
+  transition: transform 0.2s ease;
+}
+
+.play-now-btn:hover {
+  transform: translateY(-2px);
+}
+
+.history-list {
+  display: grid;
+  gap: 20px;
+}
+
+.history-card {
+  background: white;
+  border-radius: 12px;
+  padding: 20px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+  transition: transform 0.2s ease;
+}
+
+.history-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
+}
+
+.history-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 15px;
+  padding-bottom: 15px;
+  border-bottom: 2px solid #f0f0f0;
+}
+
+.history-header h3 {
+  margin: 0;
+  color: #667eea;
+  font-size: 1.3em;
+}
+
+.history-date {
+  color: #999;
+  font-size: 14px;
+}
+
+.history-details {
+  display: grid;
+  gap: 12px;
+}
+
+.detail-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px 0;
+}
+
+.detail-label {
+  font-weight: 500;
+  color: #666;
+}
+
+.detail-value {
+  color: #333;
+  font-weight: 600;
+}
+
+.detail-value.route {
+  font-family: monospace;
+  background: #f5f5f5;
+  padding: 4px 8px;
+  border-radius: 4px;
+}
+
+.detail-row.highlight {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  padding: 12px;
+  border-radius: 8px;
+  margin-top: 8px;
+}
+
+.detail-row.highlight .detail-label,
+.detail-row.highlight .detail-value {
+  color: white;
+}
+
+.detail-value.distance {
+  font-size: 1.2em;
+}
+
+.algorithm-times {
+  margin-top: 15px;
+  padding-top: 15px;
+  border-top: 2px solid #f0f0f0;
+}
+
+.algorithm-times h4 {
+  margin: 0 0 10px 0;
+  color: #667eea;
+  font-size: 1em;
+}
+
+.algo-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 10px;
+}
+
+.algo-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px 12px;
+  background: #f5f5f5;
+  border-radius: 6px;
+}
+
+.algo-name {
+  font-size: 14px;
+  color: #666;
+}
+
+.algo-time {
+  font-weight: 600;
+  color: #667eea;
+}
+
+.leaderboard-table {
+  background: white;
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+}
+
+.leaderboard-table table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.leaderboard-table thead {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+}
+
+.leaderboard-table th {
+  padding: 15px;
+  text-align: left;
+  font-weight: 600;
+  font-size: 14px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.leaderboard-table tbody tr {
+  border-bottom: 1px solid #f0f0f0;
+  transition: background 0.2s ease;
+}
+
+.leaderboard-table tbody tr:hover {
+  background: #f5f5f5;
+}
+
+.leaderboard-table tbody tr.current-player {
+  background: #e8ebfc;
+  font-weight: 600;
+}
+
+.leaderboard-table tbody tr.current-player:hover {
+  background: #dce1f9;
+}
+
+.leaderboard-table td {
+  padding: 15px;
+  font-size: 15px;
+  color: #333;
+}
+
+.leaderboard-table .rank {
+  font-size: 18px;
+  font-weight: 600;
+  text-align: center;
+  width: 80px;
+}
+
+.leaderboard-table .player-name {
+  font-weight: 500;
+  color: #333;
+}
+
+.leaderboard-table .best-distance {
+  color: #667eea;
+  font-weight: 600;
+}
+
+@media (max-width: 768px) {
+  .tsp-stats {
+    padding: 10px;
+  }
+
+  .tsp-stats-header h1 {
+    font-size: 1.8em;
+  }
+
+  .tsp-stats-tabs {
+    flex-direction: column;
+  }
+
+  .tab-btn {
+    width: 100%;
+  }
+
+  .detail-row {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 5px;
+  }
+
+  .algo-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .leaderboard-table {
+    overflow-x: auto;
+  }
+
+  .leaderboard-table table {
+    min-width: 600px;
+  }
+}
