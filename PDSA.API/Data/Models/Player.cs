@@ -1,6 +1,7 @@
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 using PDSA.API.Data.Models.TSP;
+using PDSA.API.Data.Models.EightQueens;
 
 namespace PDSA.API.Data.Models
 {
@@ -17,5 +18,6 @@ namespace PDSA.API.Data.Models
 
         // Navigation properties
         public virtual ICollection<TSPRound> TSPRounds { get; set; } = new List<TSPRound>();
+        public virtual ICollection<EQPSolution> EQPSolutions { get; set; } = new List<EQPSolution>();
     }
 }

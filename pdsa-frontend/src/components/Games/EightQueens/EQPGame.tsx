@@ -25,7 +25,15 @@ type EQPSolutionDto = {
   gameId: string;
   totalSolutionsSequential: number;
   totalSolutionsThreaded: number;
+  roundNumber: number;
   algorithmResults: AlgorithmResult[];
+};
+
+type GameStats = {
+  totalSolutionsCount: number;
+  foundSolutionsCount: number;
+  remainingSolutionsCount: number;
+  uniquePlayers: number;
 };
 
 const API_BASE = "http://localhost:5007";
@@ -37,6 +45,7 @@ const EQPGame: React.FC = () => {
   const [message, setMessage] = useState<string>("");
   const [loading, setLoading] = useState<boolean>(false);
   const [solutionInfo, setSolutionInfo] = useState<EQPSolutionDto | null>(null);
+  const [gameStats, setGameStats] = useState<GameStats | null>(null);
 
   // Game progress tracking
   const [passedRounds, setPassedRounds] = useState<number>(0);
@@ -52,12 +61,25 @@ const EQPGame: React.FC = () => {
 
   useEffect(() => {
     createNewGame();
+    loadGameStats();
   }, []);
 
   const createEmptyBoard = (n: number): Cell[][] => {
     return Array.from({ length: n }, (_, r) =>
       Array.from({ length: n }, (_, c) => ({ row: r, col: c, hasQueen: false }))
     );
+  };
+
+  const loadGameStats = async () => {
+    try {
+      const res = await fetch(`${API_BASE}/api/eqp/game-stats`);
+      if (res.ok) {
+        const data = await res.json();
+        setGameStats(data);
+      }
+    } catch (err) {
+      console.error("Failed to load game stats:", err);
+    }
   };
 
   const createNewGame = async () => {
@@ -164,14 +186,24 @@ const EQPGame: React.FC = () => {
       setCurrentResult(isCorrect ? 'pass' : 'fail');
       setShowResultDialog(true);
       
-      // Update progress counters
+      // Update progress counters and stats
       if (isCorrect) {
         setPassedRounds(prev => prev + 1);
+        // Reload game stats after successful submission
+        loadGameStats();
+        
+        // If all solutions found, show special message
+        if (data.allSolutionsFound) {
+          setMessage("🎉 " + (data.message || "All solutions found! Game has been reset."));
+        } else if (data.isAlreadyFound) {
+          setMessage("⚠️ " + (data.message || "This solution was already found!"));
+        } else {
+          setMessage("✅ " + (data.message || "Correct! New solution saved."));
+        }
       } else {
         setFailedRounds(prev => prev + 1);
+        setMessage("❌ " + (data.message || "Incorrect solution. Try again!"));
       }
-      
-      setMessage(data.message || (isCorrect ? "Correct solution!" : "Incorrect solution."));
     } catch (err: any) {
       console.error(err);
       setCurrentResult('fail');
@@ -218,11 +250,31 @@ const EQPGame: React.FC = () => {
         <button onClick={handleBackToGames} className="eqp-back-btn">
           ← Back to Games
         </button>
+        <button onClick={() => navigate('/games/eqp/stats')} className="eqp-stats-btn">
+          📊 View Statistics
+        </button>
       </div>
 
       <div className="eqp-header">
         <h1>♟️ Eight Queens Puzzle</h1>
         <p>Place 8 queens so no two attack each other. Submit your solution or let the solver find all solutions.</p>
+        
+        {gameStats && (
+          <div className="eqp-global-stats">
+            <div className="stat-item">
+              <span className="stat-label">Solutions Found:</span>
+              <span className="stat-value">{gameStats.foundSolutionsCount}</span>
+            </div>
+            <div className="stat-item">
+              <span className="stat-label">Remaining Solutions:</span>
+              <span className="stat-value">{gameStats.remainingSolutionsCount}</span>
+            </div>
+            <div className="stat-item">
+              <span className="stat-label">Players:</span>
+              <span className="stat-value">{gameStats.uniquePlayers}</span>
+            </div>
+          </div>
+        )}
         
         <div className="eqp-game-stats">
           <div className="player-info">
@@ -240,10 +292,6 @@ const EQPGame: React.FC = () => {
               <span className="progress-value">{failedRounds}</span>
             </div>
           </div>
-        </div>
-
-        <div className="eqp-controls">
-          <button onClick={solveAll} disabled={loading}>Run Solver (Sequential & Threaded)</button>
         </div>
       </div>
 
@@ -273,9 +321,15 @@ const EQPGame: React.FC = () => {
             </div>
           </div>
 
+          {message && (
+            <div className={`eqp-message ${message.includes('✅') || message.includes('🎉') ? 'success' : message.includes('⚠️') ? 'warning' : 'error'}`}>
+              {message}
+            </div>
+          )}
+
           {solutionInfo && (
             <div className="eqp-solution-info">
-              <h3>Solver Results</h3>
+              <h3>Solver Results - Round #{solutionInfo.roundNumber}</h3>
               <div className="solver-summary">
                 <div className="summary-item">
                   <span className="summary-label">Sequential Found:</span>
@@ -287,13 +341,26 @@ const EQPGame: React.FC = () => {
                 </div>
               </div>
               <div className="eqp-alg-results">
-                {solutionInfo.algorithmResults.map((r, i) => (
-                  <div key={i} className="eqp-alg-card">
-                    <h4>{r.algorithmName}</h4>
-                    <p>Solutions: {r.solutionsFound}</p>
-                    <p>Time: {r.executionTimeMs} ms</p>
-                  </div>
-                ))}
+                {solutionInfo.algorithmResults.map((r, i) => {
+                  const isSequential = r.algorithmName.includes('Sequential');
+                  const otherAlgo = solutionInfo.algorithmResults.find(a => a.algorithmName !== r.algorithmName);
+                  const speedup = otherAlgo && isSequential
+                    ? ((r.executionTimeMs / otherAlgo.executionTimeMs) * 100).toFixed(1)
+                    : otherAlgo && !isSequential
+                    ? ((otherAlgo.executionTimeMs / r.executionTimeMs) * 100).toFixed(1)
+                    : null;
+
+                  return (
+                    <div key={i} className="eqp-alg-card">
+                      <h4>{r.algorithmName}</h4>
+                      <p>Solutions: {r.solutionsFound}</p>
+                      <p>Time: {r.executionTimeMs.toFixed(2)} ms</p>
+                      {speedup && !isSequential && (
+                        <p className="speedup">⚡ {speedup}% faster</p>
+                      )}
+                    </div>
+                  );
+                })}
               </div>
             </div>
           )}

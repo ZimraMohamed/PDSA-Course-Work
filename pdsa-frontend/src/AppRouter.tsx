@@ -3,7 +3,7 @@ import App from './App';
 import { TSPGame, TSPStats } from './components/Games/TravelingSalesman';
 import { TrafficGame } from './components/Games/TrafficSimulation';
 import { TOHPGame } from './components/Games/TowerOfHanoi';
-import { EQPGame } from './components/Games/EightQueens';
+import { EQPGame, EQPStats } from './components/Games/EightQueens';
 import { SALGame } from './components/Games/SnakeAndLadder';
 import './AppRouter.css';
 
@@ -31,6 +31,10 @@ const router = createBrowserRouter([
   {
     path: '/games/eqp',
     element: <EQPGame />,
+  },
+  {
+    path: '/games/eqp/stats',
+    element: <EQPStats />,
   },
   {
     path: '/games/snake-ladder',

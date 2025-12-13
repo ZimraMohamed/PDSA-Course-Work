@@ -60,6 +60,11 @@ namespace PDSA.Core.Algorithms.EightQueens
             }
         }
 
+        public static bool ValidateSolution(List<QueenPosition> positions, int boardSize)
+        {
+            return EQPSolver.ValidateSolution(positions, boardSize);
+        }
+
         public static bool ValidateAndRecordPlayerSolution(Guid gameId, string playerName, List<QueenPosition> positions)
         {
             if (!rounds.ContainsKey(gameId)) throw new ArgumentException("Game not found");
