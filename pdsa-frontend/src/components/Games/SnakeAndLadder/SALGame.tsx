@@ -55,6 +55,7 @@ const SALGame: React.FC = () => {
   const [failedRounds, setFailedRounds] = useState<number>(0);
   const [showConfirmDialog, setShowConfirmDialog] = useState<boolean>(false);
   const [showResultDialog, setShowResultDialog] = useState<boolean>(false);
+  const [showAnswerPopup, setShowAnswerPopup] = useState<boolean>(false);
   const [currentResult, setCurrentResult] = useState<'pass' | 'fail' | 'draw'>('pass');
 
   const API_BASE_URL = 'http://localhost:5007';
@@ -587,6 +588,11 @@ const SALGame: React.FC = () => {
     navigate('/');
   };
 
+  const handleCloseAnswerPopup = () => {
+    setShowAnswerPopup(false);
+    setUserAnswer(null);
+  };
+
   const createNewGame = async () => {
     setLoading(true);
     setError('');
@@ -624,7 +630,12 @@ const SALGame: React.FC = () => {
       const response = await fetch(`${API_BASE_URL}/api/sal/solve`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ gameId: gameRound.gameId })
+        body: JSON.stringify({
+          gameId: gameRound.gameId,
+          boardSize: gameRound.boardSize,
+          snakes: gameRound.snakes,
+          ladders: gameRound.ladders
+        })
       });
 
       if (!response.ok) throw new Error('Failed to solve puzzle');
@@ -649,15 +660,9 @@ const SALGame: React.FC = () => {
       
       // Shuffle choices
       setAnswerChoices(choices.sort(() => Math.random() - 0.5));
-      setGameStatus('solved');
       
-      // Scroll to answer section after a delay
-      setTimeout(() => {
-        const answerSection = document.querySelector('.sal-answer-section');
-        if (answerSection) {
-          answerSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
-        }
-      }, 300);
+      // Show answer popup
+      setShowAnswerPopup(true);
     } catch (err) {
       setError('Failed to solve puzzle. Please try again.');
       console.error(err);
@@ -680,7 +685,13 @@ const SALGame: React.FC = () => {
           gameId: gameRound.gameId,
           playerName: playerName,
           userAnswer: userAnswer,
-          correctAnswer: solution.minimumThrows
+          correctAnswer: solution.minimumThrows,
+          boardSize: gameRound.boardSize,
+          numSnakes: gameRound.snakes.length,
+          numLadders: gameRound.ladders.length,
+          snakes: gameRound.snakes,
+          ladders: gameRound.ladders,
+          algorithmResults: solution.algorithmResults
         })
       });
 
@@ -724,6 +735,9 @@ const SALGame: React.FC = () => {
       <div className="sal-nav">
         <button onClick={handleBackToGames} className="sal-back-btn">
           ← Back to Games
+        </button>
+        <button onClick={() => navigate('/games/sal/stats')} className="sal-stats-btn">
+          📊 View Statistics
         </button>
       </div>
 
@@ -799,99 +813,85 @@ const SALGame: React.FC = () => {
 
       {gameStatus !== 'setup' && gameRound && (
         <>
-          <div className="sal-game-info">
-            <div className="info-card">
-              <h3>Game Information</h3>
-              <div className="info-grid">
-                <div className="info-item">
-                  <span className="info-label">Board Size:</span>
-                  <span className="info-value">{gameRound.boardSize} × {gameRound.boardSize}</span>
+          <div className="sal-game-board-container">
+            <div className="sal-game-info">
+              <div className="info-card">
+                <h3>Game Information</h3>
+                <div className="info-grid">
+                  <div className="info-item">
+                    <span className="info-label">Board Size:</span>
+                    <span className="info-value">{gameRound.boardSize} × {gameRound.boardSize}</span>
+                  </div>
+                  <div className="info-item">
+                    <span className="info-label">Total Cells:</span>
+                    <span className="info-value">{gameRound.boardSize * gameRound.boardSize}</span>
+                  </div>
+                  <div className="info-item">
+                    <span className="info-label">Snakes:</span>
+                    <span className="info-value">{gameRound.snakes.length}</span>
+                  </div>
+                  <div className="info-item">
+                    <span className="info-label">Ladders:</span>
+                    <span className="info-value">{gameRound.ladders.length}</span>
+                  </div>
                 </div>
-                <div className="info-item">
-                  <span className="info-label">Total Cells:</span>
-                  <span className="info-value">{gameRound.boardSize * gameRound.boardSize}</span>
-                </div>
-                <div className="info-item">
-                  <span className="info-label">Snakes:</span>
-                  <span className="info-value">{gameRound.snakes.length}</span>
-                </div>
-                <div className="info-item">
-                  <span className="info-label">Ladders:</span>
-                  <span className="info-value">{gameRound.ladders.length}</span>
-                </div>
+                <button 
+                  onClick={solvePuzzle} 
+                  disabled={loading || gameStatus === 'answered'}
+                  className="solve-btn"
+                >
+                  {loading ? 'Solving...' : gameStatus === 'answered' ? 'Challenge Completed' : 'Submit Minimum Rolls'}
+                </button>
               </div>
-              <button 
-                onClick={solvePuzzle} 
-                disabled={loading || gameStatus === 'solved' || gameStatus === 'answered'}
-                className="solve-btn"
-              >
-                {loading ? 'Solving...' : gameStatus === 'solved' || gameStatus === 'answered' ? 'Already Solved' : 'Find Minimum Throws'}
-              </button>
+            </div>
+
+            <div className="sal-board-section">
+              <h3>Game Board</h3>
+              {renderBoard()}
             </div>
           </div>
-
-          <div className="sal-board-section">
-            <h3>Game Board</h3>
-            {renderBoard()}
-          </div>
-
-          {solution && (
-            <>
-              <div className="sal-answer-section">
-                <h3>Your Answer</h3>
-                <p className="answer-prompt">Select the minimum number of dice throws required:</p>
-                <div className="answer-choices">
-                  {answerChoices.map((choice, index) => (
-                    <button
-                      key={index}
-                      className={`choice-btn ${userAnswer === choice ? 'selected' : ''}`}
-                      onClick={() => setUserAnswer(choice)}
-                      disabled={loading || gameStatus === 'answered'}
-                    >
-                      {choice} {choice === 1 ? 'throw' : 'throws'}
-                    </button>
-                  ))}
-                </div>
-                {userAnswer !== null && (
-                  <button 
-                    onClick={submitAnswer} 
-                    disabled={loading || gameStatus === 'answered'}
-                    className="submit-answer-btn"
-                  >
-                    {loading ? 'Submitting...' : 'Submit Answer'}
-                  </button>
-                )}
-              </div>
-
-              <div className="sal-solution-section">
-                <h3>Algorithm Results</h3>
-                <div className="algorithm-results">
-                  {solution.algorithmResults.map((result, index) => (
-                    <div key={index} className="algorithm-card">
-                      <h4>{result.algorithmName}</h4>
-                      <div className="result-details">
-                        <div className="result-item">
-                          <span className="result-label">Minimum Throws:</span>
-                          <span className="result-value">{result.minimumThrows}</span>
-                        </div>
-                        <div className="result-item">
-                          <span className="result-label">Execution Time:</span>
-                          <span className="result-value">{result.executionTimeMs.toFixed(2)} ms</span>
-                        </div>
-                        <div className="result-item">
-                          <span className="result-label">Path Length:</span>
-                          <span className="result-value">{result.path.length} steps</span>
-                        </div>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            </>
-          )}
         </>
       )}
       </div>
+
+      {/* Answer Popup */}
+      {showAnswerPopup && solution && (
+        <div className="sal-answer-popup-overlay" onClick={handleCloseAnswerPopup}>
+          <div className="sal-answer-popup" onClick={(e) => e.stopPropagation()}>
+            <div className="popup-header">
+              <h3>Minimum Throws Required</h3>
+              <button className="popup-close" onClick={handleCloseAnswerPopup}>×</button>
+            </div>
+            <div className="popup-content">
+              <p className="answer-prompt">Select the minimum number of dice throws required to reach the end:</p>
+              <div className="answer-choices">
+                {answerChoices.map((choice, index) => (
+                  <button
+                    key={index}
+                    className={`choice-btn ${userAnswer === choice ? 'selected' : ''}`}
+                    onClick={() => setUserAnswer(choice)}
+                    disabled={loading || gameStatus === 'answered'}
+                  >
+                    {choice} {choice === 1 ? 'throw' : 'throws'}
+                  </button>
+                ))}
+              </div>
+              {userAnswer !== null && (
+                <button 
+                  onClick={() => {
+                    submitAnswer();
+                    setShowAnswerPopup(false);
+                  }} 
+                  disabled={loading || gameStatus === 'answered'}
+                  className="submit-answer-btn"
+                >
+                  {loading ? 'Submitting...' : 'Submit Answer'}
+                </button>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
 
       <ConfirmDialog
         isOpen={showConfirmDialog}

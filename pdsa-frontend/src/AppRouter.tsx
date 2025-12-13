@@ -4,7 +4,7 @@ import { TSPGame, TSPStats } from './components/Games/TravelingSalesman';
 import { TrafficGame } from './components/Games/TrafficSimulation';
 import { TOHPGame, TOHPStats } from './components/Games/TowerOfHanoi';
 import { EQPGame, EQPStats } from './components/Games/EightQueens';
-import { SALGame } from './components/Games/SnakeAndLadder';
+import { SALGame, SALStats } from './components/Games/SnakeAndLadder';
 import './AppRouter.css';
 
 const ComingSoonPage = ({ title, icon }: { title: string; icon: string }) => (
@@ -39,6 +39,14 @@ const router = createBrowserRouter([
   {
     path: '/games/snake-ladder',
     element: <SALGame />,
+  },
+  {
+    path: '/games/sal',
+    element: <SALGame />,
+  },
+  {
+    path: '/games/sal/stats',
+    element: <SALStats />,
   },
   {
     path: '/games/traffic-simulation',

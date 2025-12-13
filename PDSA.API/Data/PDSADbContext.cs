@@ -4,6 +4,7 @@ using PDSA.API.Data.Models.TSP;
 using PDSA.API.Data.Models.EightQueens;
 using PDSA.API.Data.Models.TrafficSimulation;
 using PDSA.API.Data.Models.TowerOfHanoi;
+using PDSA.API.Data.Models.SnakeAndLadder;
 
 namespace PDSA.API.Data
 {
@@ -25,6 +26,9 @@ namespace PDSA.API.Data
         public DbSet<TrafficAlgoTime> TrafficAlgoTimes { get; set; }
         public DbSet<HanoiRound> HanoiRounds { get; set; }
         public DbSet<HanoiAlgoTime> HanoiAlgoTimes { get; set; }
+        public DbSet<SnakeLadderRound> SnakeLadderRounds { get; set; }
+        public DbSet<SnakeLadderBoardConfig> SnakeLadderBoardConfigs { get; set; }
+        public DbSet<SnakeLadderAlgoTime> SnakeLadderAlgoTimes { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -204,6 +208,61 @@ namespace PDSA.API.Data
                 entity.Property(e => e.TimeID).ValueGeneratedOnAdd();
                 entity.Property(e => e.RoundID).IsRequired();
                 entity.Property(e => e.AlgorithmName).IsRequired();
+                entity.Property(e => e.TimeTaken_ms).IsRequired();
+
+                // Foreign key relationship
+                entity.HasOne(e => e.Round)
+                    .WithMany(r => r.AlgorithmTimes)
+                    .HasForeignKey(e => e.RoundID)
+                    .OnDelete(DeleteBehavior.Cascade);
+            });
+
+            // Configure SnakeLadderRound entity
+            modelBuilder.Entity<SnakeLadderRound>(entity =>
+            {
+                entity.ToTable("SnakeLadder_Rounds");
+                entity.HasKey(e => e.RoundID);
+                entity.Property(e => e.RoundID).ValueGeneratedOnAdd();
+                entity.Property(e => e.PlayerID).IsRequired();
+                entity.Property(e => e.BoardSize_N).IsRequired();
+                entity.Property(e => e.NumLadders).IsRequired();
+                entity.Property(e => e.NumSnakes).IsRequired();
+                entity.Property(e => e.CorrectMinThrows).IsRequired();
+                entity.Property(e => e.DatePlayed).IsRequired();
+
+                // Foreign key relationship
+                entity.HasOne(e => e.Player)
+                    .WithMany(p => p.SnakeLadderRounds)
+                    .HasForeignKey(e => e.PlayerID)
+                    .OnDelete(DeleteBehavior.Cascade);
+            });
+
+            // Configure SnakeLadderBoardConfig entity
+            modelBuilder.Entity<SnakeLadderBoardConfig>(entity =>
+            {
+                entity.ToTable("SnakeLadder_BoardConfig");
+                entity.HasKey(e => e.ConfigID);
+                entity.Property(e => e.ConfigID).ValueGeneratedOnAdd();
+                entity.Property(e => e.RoundID).IsRequired();
+                entity.Property(e => e.FeatureType).IsRequired().HasMaxLength(10);
+                entity.Property(e => e.Start_Cell).IsRequired();
+                entity.Property(e => e.End_Cell).IsRequired();
+
+                // Foreign key relationship
+                entity.HasOne(e => e.Round)
+                    .WithMany(r => r.BoardConfigs)
+                    .HasForeignKey(e => e.RoundID)
+                    .OnDelete(DeleteBehavior.Cascade);
+            });
+
+            // Configure SnakeLadderAlgoTime entity
+            modelBuilder.Entity<SnakeLadderAlgoTime>(entity =>
+            {
+                entity.ToTable("SnakeLadder_AlgoTimes");
+                entity.HasKey(e => e.TimeID);
+                entity.Property(e => e.TimeID).ValueGeneratedOnAdd();
+                entity.Property(e => e.RoundID).IsRequired();
+                entity.Property(e => e.AlgorithmName).IsRequired().HasMaxLength(100);
                 entity.Property(e => e.TimeTaken_ms).IsRequired();
 
                 // Foreign key relationship

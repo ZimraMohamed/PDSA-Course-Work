@@ -8,9 +8,13 @@
 
 .sal-nav {
   margin-bottom: 20px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
 }
 
-.sal-back-btn {
+.sal-back-btn,
+.sal-stats-btn {
   background: #6b7280;
   border: none;
   color: white;
@@ -23,9 +27,18 @@
   display: inline-block;
 }
 
-.sal-back-btn:hover {
+.sal-stats-btn {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+}
+
+.sal-back-btn:hover,
+.sal-stats-btn:hover {
   background: #4b5563;
   transform: translateY(-1px);
+}
+
+.sal-stats-btn:hover {
+  background: linear-gradient(135deg, #5568d3 0%, #653a8b 100%);
 }
 
 .sal-header {
@@ -264,10 +277,26 @@
   transform: none;
 }
 
-/* Game Info Section */
-.sal-game-info {
+/* Game Board Container - Side by Side Layout */
+.sal-game-board-container {
+  display: grid;
+  grid-template-columns: 400px 1fr;
+  gap: 24px;
   max-width: 1400px;
   margin: 0 auto 32px;
+  align-items: start;
+}
+
+@media (max-width: 1024px) {
+  .sal-game-board-container {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* Game Info Section */
+.sal-game-info {
+  position: sticky;
+  top: 20px;
 }
 
 .info-card {
@@ -285,9 +314,9 @@
 }
 
 .info-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-  gap: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
   margin-bottom: 24px;
 }
 
@@ -343,8 +372,6 @@
 
 /* Board Section */
 .sal-board-section {
-  max-width: 1400px;
-  margin: 0 auto 32px;
   background: white;
   border-radius: 16px;
   padding: 32px;
@@ -554,6 +581,96 @@
 .legend-icon.ladder {
   background: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%);
   color: white;
+}
+
+/* Answer Popup */
+.sal-answer-popup-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.6);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  backdrop-filter: blur(4px);
+  animation: fadeIn 0.2s ease;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.sal-answer-popup {
+  background: white;
+  border-radius: 20px;
+  padding: 0;
+  max-width: 600px;
+  width: 90%;
+  max-height: 90vh;
+  overflow-y: auto;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+  animation: slideUp 0.3s ease;
+}
+
+@keyframes slideUp {
+  from {
+    transform: translateY(20px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+.popup-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 24px 32px;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  border-radius: 20px 20px 0 0;
+  color: white;
+}
+
+.popup-header h3 {
+  margin: 0;
+  font-size: 1.5rem;
+  font-weight: 700;
+}
+
+.popup-close {
+  background: rgba(255, 255, 255, 0.2);
+  border: none;
+  color: white;
+  font-size: 28px;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+  line-height: 1;
+  padding: 0;
+}
+
+.popup-close:hover {
+  background: rgba(255, 255, 255, 0.3);
+  transform: rotate(90deg);
+}
+
+.popup-content {
+  padding: 32px;
 }
 
 /* Answer Section */
