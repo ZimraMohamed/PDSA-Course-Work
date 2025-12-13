@@ -163,22 +163,74 @@ namespace PDSA.API.Controllers.Games
                 var player = _context.Players.FirstOrDefault(p => p.Name == playerName);
                 if (player == null)
                 {
-                    return Ok(new { rounds = new List<object>() });
+                    return Ok(new List<object>());
                 }
 
                 var rounds = _context.TrafficRounds
                     .Where(r => r.PlayerID == player.PlayerID)
-                    .OrderByDescending(r => r.RoundID)
-                    .Take(10)
-                    .Select(r => new
-                    {
-                        roundId = r.RoundID,
-                        correctMaxFlow = r.CorrectMaxFlow,
-                        datePlayed = r.DatePlayed
-                    })
+                    .OrderByDescending(r => r.DatePlayed)
                     .ToList();
 
-                return Ok(new { rounds });
+                var history = rounds.Select(round => new
+                {
+                    roundId = round.RoundID,
+                    correctMaxFlow = round.CorrectMaxFlow,
+                    datePlayed = round.DatePlayed,
+                    algorithmTimes = _context.TrafficAlgoTimes
+                        .Where(a => a.RoundID == round.RoundID)
+                        .Select(a => new
+                        {
+                            algorithmName = a.AlgorithmName,
+                            timeTakenMs = a.TimeTaken_ms
+                        })
+                        .ToList(),
+                    capacities = _context.TrafficCapacities
+                        .Where(c => c.RoundID == round.RoundID)
+                        .Select(c => new
+                        {
+                            roadSegment = c.RoadSegment,
+                            capacity = c.Capacity_VehPerMin
+                        })
+                        .ToList()
+                }).ToList();
+
+                return Ok(history);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { message = "An error occurred", error = ex.Message });
+            }
+        }
+
+        [HttpGet("leaderboard")]
+        public IActionResult GetLeaderboard([FromQuery] int top = 20)
+        {
+            try
+            {
+                var leaderboard = _context.Players
+                    .Select(p => new
+                    {
+                        playerName = p.Name,
+                        totalGames = _context.TrafficRounds.Count(r => r.PlayerID == p.PlayerID),
+                        averageMaxFlow = _context.TrafficRounds
+                            .Where(r => r.PlayerID == p.PlayerID)
+                            .Average(r => (double?)r.CorrectMaxFlow) ?? 0,
+                        bestMaxFlow = _context.TrafficRounds
+                            .Where(r => r.PlayerID == p.PlayerID)
+                            .Max(r => (double?)r.CorrectMaxFlow) ?? 0,
+                        lastPlayed = _context.TrafficRounds
+                            .Where(r => r.PlayerID == p.PlayerID)
+                            .OrderByDescending(r => r.DatePlayed)
+                            .Select(r => r.DatePlayed)
+                            .FirstOrDefault()
+                    })
+                    .Where(x => x.totalGames > 0)
+                    .OrderByDescending(x => x.bestMaxFlow)
+                    .ThenByDescending(x => x.totalGames)
+                    .Take(top)
+                    .ToList();
+
+                return Ok(leaderboard);
             }
             catch (Exception ex)
             {

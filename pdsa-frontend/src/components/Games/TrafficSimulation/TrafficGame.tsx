@@ -177,6 +177,9 @@ export default function TrafficGame() {
         <button onClick={handleBackToGames} className="traffic-back-btn">
           ← Back to Games
         </button>
+        <button onClick={() => navigate('/games/traffic-simulation/stats')} className="traffic-stats-btn">
+          📊 View Statistics
+        </button>
       </div>
 
       <div className="traffic-header">
@@ -348,39 +351,6 @@ export default function TrafficGame() {
                     </button>
                   </div>
                 </div>
-
-                {result && (
-                  <div className="traffic-result-section">
-                    <h3>Results</h3>
-                    <div className="result-grid">
-                      <div className="result-item">
-                        <span className="result-label">Your Answer:</span>
-                        <span className="result-value">{result.playerAnswer}</span>
-                      </div>
-                      <div className="result-item">
-                        <span className="result-label">Correct Answer:</span>
-                        <span className="result-value">{result.correctAnswer}</span>
-                      </div>
-                      <div className="result-item">
-                        <span className="result-label">Status:</span>
-                        <span className={`result-value ${result.status.toLowerCase()}`}>
-                          {result.status}
-                        </span>
-                      </div>
-                      <div className="result-item full-width">
-                        <span className="result-label">Algorithm Performance:</span>
-                      </div>
-                      <div className="result-item">
-                        <span className="result-label">Edmonds-Karp:</span>
-                        <span className="result-value">{result.edmondsKarpTime}ms</span>
-                      </div>
-                      <div className="result-item">
-                        <span className="result-label">Dinic's:</span>
-                        <span className="result-value">{result.dinicTime}ms</span>
-                      </div>
-                    </div>
-                  </div>
-                )}
               </div>
             </div>
           </>

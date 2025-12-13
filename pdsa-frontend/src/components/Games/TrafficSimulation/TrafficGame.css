@@ -11,9 +11,13 @@
 /* Navigation */
 .traffic-nav {
   margin-bottom: 20px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
 }
 
-.traffic-back-btn {
+.traffic-back-btn,
+.traffic-stats-btn {
   background: #6b7280;
   border: none;
   color: white;
@@ -26,9 +30,18 @@
   display: inline-block;
 }
 
-.traffic-back-btn:hover {
+.traffic-stats-btn {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+}
+
+.traffic-back-btn:hover,
+.traffic-stats-btn:hover {
   background: #4b5563;
   transform: translateY(-1px);
+}
+
+.traffic-stats-btn:hover {
+  background: linear-gradient(135deg, #5568d3 0%, #653a8b 100%);
 }
 
 /* Header Section */

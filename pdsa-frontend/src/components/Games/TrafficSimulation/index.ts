@@ -1,1 +1,1 @@
-export { default as TrafficGame } from "./TrafficGame";
+export { default as TrafficGame } from "./TrafficGame";export { default as TrafficStats } from './TrafficStats';

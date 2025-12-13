@@ -1,7 +1,7 @@
 import { createBrowserRouter, RouterProvider } from 'react-router-dom';
 import App from './App';
 import { TSPGame, TSPStats } from './components/Games/TravelingSalesman';
-import { TrafficGame } from './components/Games/TrafficSimulation';
+import { TrafficGame, TrafficStats } from './components/Games/TrafficSimulation';
 import { TOHPGame, TOHPStats } from './components/Games/TowerOfHanoi';
 import { EQPGame, EQPStats } from './components/Games/EightQueens';
 import { SALGame, SALStats } from './components/Games/SnakeAndLadder';
@@ -51,6 +51,10 @@ const router = createBrowserRouter([
   {
     path: '/games/traffic-simulation',
     element: <TrafficGame />,
+  },
+  {
+    path: '/games/traffic-simulation/stats',
+    element: <TrafficStats />,
   },
   {
     path: '/games/tower-of-hanoi',
