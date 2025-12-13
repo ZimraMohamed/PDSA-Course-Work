@@ -2,7 +2,7 @@ import { createBrowserRouter, RouterProvider } from 'react-router-dom';
 import App from './App';
 import { TSPGame, TSPStats } from './components/Games/TravelingSalesman';
 import { TrafficGame } from './components/Games/TrafficSimulation';
-import { TOHPGame } from './components/Games/TowerOfHanoi';
+import { TOHPGame, TOHPStats } from './components/Games/TowerOfHanoi';
 import { EQPGame, EQPStats } from './components/Games/EightQueens';
 import { SALGame } from './components/Games/SnakeAndLadder';
 import './AppRouter.css';
@@ -47,6 +47,14 @@ const router = createBrowserRouter([
   {
     path: '/games/tower-of-hanoi',
     element: <TOHPGame />,
+  },
+  {
+    path: '/games/tohp',
+    element: <TOHPGame />,
+  },
+  {
+    path: '/games/tohp/stats',
+    element: <TOHPStats />,
   },
   {
     path: '/games/eight-queens',

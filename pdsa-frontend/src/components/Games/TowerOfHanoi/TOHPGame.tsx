@@ -240,6 +240,9 @@ const TOHPGame: React.FC = () => {
         >
           ← Back to Games
         </button>
+        <button onClick={() => navigate('/games/tohp/stats')} className="tohp-stats-btn">
+          📊 View Statistics
+        </button>
       </div>
 
       <div className="tohp-header">
