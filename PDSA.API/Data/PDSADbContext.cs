@@ -1,6 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using PDSA.API.Data.Models;
 using PDSA.API.Data.Models.TSP;
+using PDSA.API.Data.Models.EightQueens;
 
 namespace PDSA.API.Data
 {
@@ -15,6 +16,8 @@ namespace PDSA.API.Data
         public DbSet<TSPRound> TSPRounds { get; set; }
         public DbSet<TSPDistance> TSPDistances { get; set; }
         public DbSet<TSPAlgoTime> TSPAlgoTimes { get; set; }
+        public DbSet<EQPSolution> EQPSolutions { get; set; }
+        public DbSet<EQPAlgoTime> EQPAlgoTimes { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -82,6 +85,37 @@ namespace PDSA.API.Data
                     .WithMany(r => r.AlgorithmTimes)
                     .HasForeignKey(e => e.RoundID)
                     .OnDelete(DeleteBehavior.Cascade);
+            });
+
+            // Configure EQPSolution entity
+            modelBuilder.Entity<EQPSolution>(entity =>
+            {
+                entity.ToTable("EightQueens_Solutions");
+                entity.HasKey(e => e.SolutionID);
+                entity.Property(e => e.SolutionID).ValueGeneratedOnAdd();
+                entity.Property(e => e.PlayerID).IsRequired(false);
+                entity.Property(e => e.DateFound).IsRequired(false);
+                entity.Property(e => e.Solution_Text).IsRequired();
+                entity.Property(e => e.IsFound).IsRequired().HasDefaultValue(false);
+                entity.HasIndex(e => e.Solution_Text).IsUnique();
+
+                // Foreign key relationship
+                entity.HasOne(e => e.Player)
+                    .WithMany(p => p.EQPSolutions)
+                    .HasForeignKey(e => e.PlayerID)
+                    .OnDelete(DeleteBehavior.Cascade);
+            });
+
+            // Configure EQPAlgoTime entity
+            modelBuilder.Entity<EQPAlgoTime>(entity =>
+            {
+                entity.ToTable("EightQueens_AlgoTimes");
+                entity.HasKey(e => e.TimeID);
+                entity.Property(e => e.TimeID).ValueGeneratedOnAdd();
+                entity.Property(e => e.DateExecuted).IsRequired();
+                entity.Property(e => e.AlgorithmType).IsRequired();
+                entity.Property(e => e.TimeTaken_ms).IsRequired();
+                entity.Property(e => e.RoundNumber).IsRequired();
             });
         }
     }
