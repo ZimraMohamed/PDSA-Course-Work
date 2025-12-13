@@ -216,7 +216,8 @@ const TSPGame: React.FC = () => {
           setCurrentResult('pass');
         }
         
-        console.log('Answer is correct! Saving to database...');
+        // Save game to database only if answer is correct
+        await saveGameToDatabase();
       } else {
         const newFailed = failedRounds + 1;
         setFailedRounds(newFailed);
@@ -236,6 +237,56 @@ const TSPGame: React.FC = () => {
       console.error(err);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const saveGameToDatabase = async () => {
+    if (!solution || !gameRound) return;
+
+    try {
+      // Build distances array for selected cities
+      const distances = [];
+      for (let i = 0; i < selectedCities.length; i++) {
+        for (let j = i + 1; j < selectedCities.length; j++) {
+          const cityA = selectedCities[i];
+          const cityB = selectedCities[j];
+          const cityAIndex = gameRound.allCities.find(c => c.name === cityA)?.index || 0;
+          const cityBIndex = gameRound.allCities.find(c => c.name === cityB)?.index || 0;
+          const distance = gameRound.distanceMatrix[cityAIndex][cityBIndex];
+          
+          distances.push({
+            cityA,
+            cityB,
+            distance
+          });
+        }
+      }
+
+      const saveRequest = {
+        playerName,
+        homeCityName: gameRound.homeCityName,
+        selectedCities: selectedCities.filter(c => c !== gameRound.homeCityName),
+        optimalRoute: solution.optimalRoute,
+        optimalDistance: solution.optimalDistance,
+        distances,
+        algorithmResults: solution.algorithmResults
+      };
+
+      const response = await fetch(`${API_BASE_URL}/api/tsp/save-game`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(saveRequest)
+      });
+
+      if (response.ok) {
+        const result = await response.json();
+        console.log('Game saved successfully:', result);
+      } else {
+        console.error('Failed to save game to database');
+      }
+    } catch (err) {
+      console.error('Error saving game to database:', err);
+      // Don't show error to user, just log it
     }
   };
 
@@ -287,6 +338,9 @@ const TSPGame: React.FC = () => {
         <button onClick={handleBackToGames} className="tsp-back-btn">
           ← Back to Games
         </button>
+        <button onClick={() => navigate('/games/tsp/stats')} className="tsp-stats-btn">
+          📊 View Statistics
+        </button>
       </div>
 
       <div className="tsp-header">
@@ -301,11 +355,11 @@ const TSPGame: React.FC = () => {
           
           <div className="game-progress">
             <div className="progress-item passed">
-              <span className="progress-label">Passed:</span>
+              <span className="progress-label">Passed: </span>
               <span className="progress-value">{passedRounds}</span>
             </div>
             <div className="progress-item failed">
-              <span className="progress-label">Failed:</span>
+              <span className="progress-label">Failed: </span>
               <span className="progress-value">{failedRounds}</span>
             </div>
           </div>
@@ -346,7 +400,7 @@ const TSPGame: React.FC = () => {
                         onClick={() => toggleCitySelection(city)}
                         disabled={gameRound.homeCityName === city}
                       >
-                        <span className="city-letter">City {city}</span>
+                        <span className="city-letter">{city}</span>
                         {gameRound.homeCityName === city && <span className="home-indicator">(Home)</span>}
                       </button>
                     ))}
