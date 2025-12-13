@@ -39,7 +39,24 @@ var app = builder.Build();
 using (var scope = app.Services.CreateScope())
 {
     var context = scope.ServiceProvider.GetRequiredService<PDSADbContext>();
+    
+    Console.WriteLine("Creating database schema...");
     context.Database.EnsureCreated();
+    Console.WriteLine("Database schema created successfully.");
+    
+    // Log all tables
+    var connection = context.Database.GetDbConnection();
+    connection.Open();
+    var command = connection.CreateCommand();
+    command.CommandText = "SELECT name FROM sqlite_master WHERE type='table' ORDER BY name;";
+    var reader = command.ExecuteReader();
+    Console.WriteLine("Database tables:");
+    while (reader.Read())
+    {
+        Console.WriteLine($"  - {reader.GetString(0)}");
+    }
+    reader.Close();
+    connection.Close();
     
     // Seed all 92 Eight Queens solutions if not already seeded
     SeedEightQueensSolutions(context);

@@ -14,13 +14,15 @@
   background: #6b7280;
   border: none;
   color: white;
-  padding: 10px 20px;
+  padding: 8px 16px;
   border-radius: 6px;
   font-weight: 500;
   cursor: pointer;
   transition: all 0.2s ease;
   text-decoration: none;
   display: inline-block;
+  font-size: 14px;
+  line-height: 1.2;
 }
 
 .tohp-back-btn:hover {
@@ -549,6 +551,20 @@
 .tohp-check-btn:active {
   transform: translateY(0);
   box-shadow: 0 2px 10px rgba(102, 126, 234, 0.3);
+}
+
+.tohp-check-btn:disabled {
+  background: #9ca3af;
+  cursor: not-allowed;
+  box-shadow: none;
+  opacity: 0.6;
+  transform: none;
+}
+
+.tohp-check-btn:disabled:hover {
+  transform: none;
+  box-shadow: none;
+  background: #9ca3af;
 }
 
 /* Instructions Section */
