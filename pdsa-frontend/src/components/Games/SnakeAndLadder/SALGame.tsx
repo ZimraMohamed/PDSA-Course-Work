@@ -1,5 +1,6 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { Stage, Layer, Line, Circle, Group } from 'react-konva';
 import ConfirmDialog from '../../Common/ConfirmDialog';
 import GameResultDialog from '../../Common/GameResultDialog';
 import './SALGame.css';
@@ -37,6 +38,8 @@ interface SALSolution {
 const SALGame: React.FC = () => {
   const navigate = useNavigate();
   const [boardSize, setBoardSize] = useState<number>(8);
+  const [previewSnakes, setPreviewSnakes] = useState<Snake[]>([]);
+  const [previewLadders, setPreviewLadders] = useState<Ladder[]>([]);
   const [gameRound, setGameRound] = useState<SALGameRound | null>(null);
   const [solution, setSolution] = useState<SALSolution | null>(null);
   const [userAnswer, setUserAnswer] = useState<number | null>(null);
@@ -44,6 +47,8 @@ const SALGame: React.FC = () => {
   const [gameStatus, setGameStatus] = useState<'setup' | 'playing' | 'solved' | 'answered'>('setup');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string>('');
+  const boardRef = useRef<HTMLDivElement>(null);
+  const [boardDimensions, setBoardDimensions] = useState({ width: 0, height: 0 });
   
   // Game progress tracking
   const [passedRounds, setPassedRounds] = useState<number>(0);
@@ -57,9 +62,501 @@ const SALGame: React.FC = () => {
   // Get player name from sessionStorage
   const playerName = sessionStorage.getItem('currentPlayerName') || 'Anonymous';
 
+  // Generate random snakes and ladders for preview
+  const generateRandomSnakesAndLadders = (size: number) => {
+    const count = size - 2;
+    const totalCells = size * size;
+    const usedCells = new Set<number>([1, totalCells]); // Reserve start and end
+    
+    const snakes: Snake[] = [];
+    const ladders: Ladder[] = [];
+    
+    // Generate snakes
+    for (let i = 0; i < count; i++) {
+      let head, tail;
+      do {
+        head = Math.floor(Math.random() * (totalCells - size)) + size + 1; // Snake head in upper portion
+        tail = Math.floor(Math.random() * (head - 1)) + 1; // Tail below head
+      } while (usedCells.has(head) || usedCells.has(tail) || head === totalCells); // No snake on finish cell
+      
+      usedCells.add(head);
+      usedCells.add(tail);
+      snakes.push({ head, tail });
+    }
+    
+    // Generate ladders
+    for (let i = 0; i < count; i++) {
+      let bottom, top;
+      do {
+        bottom = Math.floor(Math.random() * (totalCells - size)) + 1; // Ladder bottom in lower portion
+        top = Math.floor(Math.random() * (totalCells - bottom)) + bottom + 1; // Top above bottom
+      } while (usedCells.has(bottom) || usedCells.has(top));
+      
+      usedCells.add(bottom);
+      usedCells.add(top);
+      ladders.push({ bottom, top });
+    }
+    
+    return { snakes, ladders };
+  };
+
   useEffect(() => {
-    // Don't auto-create game on mount, wait for user to set board size
-  }, []);
+    // Generate preview board when board size changes
+    const { snakes, ladders } = generateRandomSnakesAndLadders(boardSize);
+    setPreviewSnakes(snakes);
+    setPreviewLadders(ladders);
+  }, [boardSize]);
+
+  // Track board dimensions for Konva canvas
+  useEffect(() => {
+    const updateDimensions = () => {
+      if (boardRef.current) {
+        const rect = boardRef.current.getBoundingClientRect();
+        setBoardDimensions({ width: rect.width, height: rect.height });
+      }
+    };
+    
+    updateDimensions();
+    window.addEventListener('resize', updateDimensions);
+    return () => window.removeEventListener('resize', updateDimensions);
+  }, [gameStatus, boardSize]);
+
+  // Helper function to get cell position (row, col) from cell number
+  const getCellPosition = (cellNumber: number, boardSize: number): { row: number; col: number } => {
+    const row = Math.floor((cellNumber - 1) / boardSize);
+    const col = (cellNumber - 1) % boardSize;
+    
+    // Check if row should be reversed (snake pattern)
+    const isReversedRow = row % 2 === 1;
+    const actualCol = isReversedRow ? boardSize - 1 - col : col;
+    
+    // Convert to visual row (bottom to top)
+    const visualRow = boardSize - 1 - row;
+    
+    return { row: visualRow, col: actualCol };
+  };
+
+  // Render snake with Konva for better visuals
+  const renderSnake = (snake: Snake, size: number, cellSize: number, index: number) => {
+    const startPos = getCellPosition(snake.head, size);
+    const endPos = getCellPosition(snake.tail, size);
+    
+    const x1 = (startPos.col + 0.5) * cellSize;
+    const y1 = (startPos.row + 0.5) * cellSize;
+    const x2 = (endPos.col + 0.5) * cellSize;
+    const y2 = (endPos.row + 0.5) * cellSize;
+    
+    // Create smooth S-curve control points
+    const dx = x2 - x1;
+    const dy = y2 - y1;
+    const distance = Math.sqrt(dx * dx + dy * dy);
+    
+    // Calculate perpendicular offset for curve
+    const perpX = -dy / distance;
+    const perpY = dx / distance;
+    const curveOffset = distance * 0.2;
+    
+    // Control points for bezier curve
+    const cp1x = x1 + dx * 0.25 + perpX * curveOffset * (index % 2 === 0 ? 1 : -1);
+    const cp1y = y1 + dy * 0.25 + perpY * curveOffset * (index % 2 === 0 ? 1 : -1);
+    const cp2x = x1 + dx * 0.75 + perpX * curveOffset * (index % 2 === 0 ? -1 : 1);
+    const cp2y = y1 + dy * 0.75 + perpY * curveOffset * (index % 2 === 0 ? -1 : 1);
+    
+    // Generate points along the curve for the snake body
+    const segments = 50;
+    const points: number[] = [];
+    for (let i = 0; i <= segments; i++) {
+      const t = i / segments;
+      const x = Math.pow(1-t, 3) * x1 + 
+                3 * Math.pow(1-t, 2) * t * cp1x + 
+                3 * (1-t) * Math.pow(t, 2) * cp2x + 
+                Math.pow(t, 3) * x2;
+      const y = Math.pow(1-t, 3) * y1 + 
+                3 * Math.pow(1-t, 2) * t * cp1y + 
+                3 * (1-t) * Math.pow(t, 2) * cp2y + 
+                Math.pow(t, 3) * y2;
+      points.push(x, y);
+    }
+    
+    const bodyWidth = cellSize * 0.15;
+    
+    return (
+      <Group key={`snake-${index}`}>
+        {/* Snake body shadow */}
+        <Line
+          points={points}
+          stroke="rgba(0, 0, 0, 0.2)"
+          strokeWidth={bodyWidth + 4}
+          lineCap="round"
+          lineJoin="round"
+          shadowBlur={10}
+          shadowOffset={{ x: 2, y: 2 }}
+          shadowOpacity={0.3}
+        />
+        
+        {/* Snake body gradient (outer) */}
+        <Line
+          points={points}
+          stroke="#dc2626"
+          strokeWidth={bodyWidth}
+          lineCap="round"
+          lineJoin="round"
+        />
+        
+        {/* Snake body gradient (inner) */}
+        <Line
+          points={points}
+          stroke="#ef4444"
+          strokeWidth={bodyWidth * 0.7}
+          lineCap="round"
+          lineJoin="round"
+        />
+        
+        {/* Snake scales pattern */}
+        {Array.from({ length: Math.floor(distance / (cellSize * 0.15)) }).map((_, i) => {
+          const t = (i + 0.5) / Math.floor(distance / (cellSize * 0.15));
+          const segX = Math.pow(1-t, 3) * x1 + 
+                      3 * Math.pow(1-t, 2) * t * cp1x + 
+                      3 * (1-t) * Math.pow(t, 2) * cp2x + 
+                      Math.pow(t, 3) * x2;
+          const segY = Math.pow(1-t, 3) * y1 + 
+                      3 * Math.pow(1-t, 2) * t * cp1y + 
+                      3 * (1-t) * Math.pow(t, 2) * cp2y + 
+                      Math.pow(t, 3) * y2;
+          
+          return (
+            <Circle
+              key={i}
+              x={segX}
+              y={segY}
+              radius={bodyWidth * 0.25}
+              fill="rgba(220, 38, 38, 0.5)"
+            />
+          );
+        })}
+        
+        {/* Snake head base (darker outer layer) */}
+        <Circle
+          x={x1}
+          y={y1}
+          radius={bodyWidth * 1.5}
+          fill="#7f1d1d"
+          shadowBlur={10}
+          shadowOpacity={0.5}
+        />
+        
+        {/* Snake head middle layer */}
+        <Circle
+          x={x1}
+          y={y1}
+          radius={bodyWidth * 1.3}
+          fill="#991b1b"
+        />
+        
+        {/* Snake head top layer */}
+        <Circle
+          x={x1}
+          y={y1}
+          radius={bodyWidth * 1.1}
+          fill="#dc2626"
+        />
+        
+        {/* Snake snout highlight */}
+        <Circle
+          x={x1}
+          y={y1 + bodyWidth * 0.4}
+          radius={bodyWidth * 0.6}
+          fill="#ef4444"
+          opacity={0.8}
+        />
+        
+        {/* Snake eye sockets (subtle shadow) */}
+        <Circle
+          x={x1 - bodyWidth * 0.6}
+          y={y1 - bodyWidth * 0.3}
+          radius={bodyWidth * 0.35}
+          fill="rgba(0, 0, 0, 0.2)"
+        />
+        <Circle
+          x={x1 + bodyWidth * 0.6}
+          y={y1 - bodyWidth * 0.3}
+          radius={bodyWidth * 0.35}
+          fill="rgba(0, 0, 0, 0.2)"
+        />
+        
+        {/* Snake eyes (yellow with black slit pupils) */}
+        <Circle
+          x={x1 - bodyWidth * 0.6}
+          y={y1 - bodyWidth * 0.3}
+          radius={bodyWidth * 0.32}
+          fill="#fbbf24"
+        />
+        <Circle
+          x={x1 + bodyWidth * 0.6}
+          y={y1 - bodyWidth * 0.3}
+          radius={bodyWidth * 0.32}
+          fill="#fbbf24"
+        />
+        
+        {/* Snake eye shine */}
+        <Circle
+          x={x1 - bodyWidth * 0.7}
+          y={y1 - bodyWidth * 0.4}
+          radius={bodyWidth * 0.1}
+          fill="white"
+          opacity={0.9}
+        />
+        <Circle
+          x={x1 + bodyWidth * 0.5}
+          y={y1 - bodyWidth * 0.4}
+          radius={bodyWidth * 0.1}
+          fill="white"
+          opacity={0.9}
+        />
+        
+        {/* Vertical slit pupils */}
+        <Line
+          points={[
+            x1 - bodyWidth * 0.6, y1 - bodyWidth * 0.5,
+            x1 - bodyWidth * 0.6, y1 - bodyWidth * 0.1
+          ]}
+          stroke="black"
+          strokeWidth={bodyWidth * 0.15}
+          lineCap="round"
+        />
+        <Line
+          points={[
+            x1 + bodyWidth * 0.6, y1 - bodyWidth * 0.5,
+            x1 + bodyWidth * 0.6, y1 - bodyWidth * 0.1
+          ]}
+          stroke="black"
+          strokeWidth={bodyWidth * 0.15}
+          lineCap="round"
+        />
+        
+        {/* Nostrils */}
+        <Circle
+          x={x1 - bodyWidth * 0.15}
+          y={y1 + bodyWidth * 0.6}
+          radius={bodyWidth * 0.08}
+          fill="#7f1d1d"
+        />
+        <Circle
+          x={x1 + bodyWidth * 0.15}
+          y={y1 + bodyWidth * 0.6}
+          radius={bodyWidth * 0.08}
+          fill="#7f1d1d"
+        />
+        
+        {/* Snake tongue (forked) */}
+        <Line
+          points={[
+            x1, y1 + bodyWidth * 0.8,
+            x1, y1 + bodyWidth * 1.3,
+            x1 - bodyWidth * 0.25, y1 + bodyWidth * 1.6,
+          ]}
+          stroke="#ef4444"
+          strokeWidth={bodyWidth * 0.1}
+          lineCap="round"
+        />
+        <Line
+          points={[
+            x1, y1 + bodyWidth * 1.3,
+            x1 + bodyWidth * 0.25, y1 + bodyWidth * 1.6,
+          ]}
+          stroke="#ef4444"
+          strokeWidth={bodyWidth * 0.1}
+          lineCap="round"
+        />
+        
+        {/* Snake tail with gradient taper */}
+        <Circle
+          x={x2}
+          y={y2}
+          radius={bodyWidth * 0.9}
+          fill="#ef4444"
+          shadowBlur={5}
+          shadowOpacity={0.3}
+        />
+        <Circle
+          x={x2}
+          y={y2}
+          radius={bodyWidth * 0.7}
+          fill="#f87171"
+        />
+        <Circle
+          x={x2}
+          y={y2}
+          radius={bodyWidth * 0.5}
+          fill="#fca5a5"
+        />
+        <Circle
+          x={x2}
+          y={y2}
+          radius={bodyWidth * 0.3}
+          fill="#fecaca"
+        />
+        
+        {/* Tail tip */}
+        <Circle
+          x={x2}
+          y={y2}
+          radius={bodyWidth * 0.15}
+          fill="#fee2e2"
+        />
+      </Group>
+    );
+  };
+
+  // Render board with Konva overlays for snakes and ladders
+  const renderBoardWithConnections = (snakes: Snake[], ladders: Ladder[], size: number) => {
+    const cells = size * size;
+    const rows = [];
+    
+    for (let row = 0; row < size; row++) {
+      const cellsInRow = [];
+      for (let col = 0; col < size; col++) {
+        // Calculate cell number: bottom row (row=0) goes left to right (1,2,3...),
+        // next row goes right to left, alternating snake pattern
+        const cellNumber = row % 2 === 0
+          ? row * size + col + 1        // Even rows: left to right
+          : row * size + (size - col);  // Odd rows: right to left
+        
+        const isStart = cellNumber === 1;
+        const isEnd = cellNumber === cells;
+        
+        let cellClass = 'sal-cell';
+        let cellContent;
+        
+        if (isStart) {
+          cellClass += ' start-cell';
+          cellContent = (
+            <>
+              <span className="cell-icon">🎯</span>
+              <span className="cell-number">START</span>
+            </>
+          );
+        } else if (isEnd) {
+          cellClass += ' end-cell';
+          cellContent = (
+            <>
+              <span className="cell-icon">🏁</span>
+              <span className="cell-number">END</span>
+            </>
+          );
+        } else {
+          cellContent = <span className="cell-number">{cellNumber}</span>;
+        }
+        
+        cellsInRow.push(
+          <div key={cellNumber} className={cellClass} data-cell={cellNumber}>
+            {cellContent}
+          </div>
+        );
+      }
+      rows.push(
+        <div key={row} className="sal-row">
+          {cellsInRow}
+        </div>
+      );
+    }
+    
+    // Reverse rows so cell 1 appears at the bottom
+    rows.reverse();
+    
+    const cellSize = boardDimensions.width > 0 ? (boardDimensions.width - 40) / size : 60;
+    
+    return (
+      <div className="sal-board-container" ref={boardRef}>
+        <div className="sal-board">{rows}</div>
+        {boardDimensions.width > 0 && (
+          <Stage
+            width={boardDimensions.width - 40}
+            height={boardDimensions.height - 40}
+            className="sal-board-overlay-konva"
+          >
+            <Layer>
+              {/* Draw snakes with Konva */}
+              {snakes.map((snake, index) => renderSnake(snake, size, cellSize, index))}
+              
+              {/* Draw ladders */}
+              {ladders.map((ladder, index) => {
+                const startPos = getCellPosition(ladder.bottom, size);
+                const endPos = getCellPosition(ladder.top, size);
+                
+                const x1 = (startPos.col + 0.5) * cellSize;
+                const y1 = (startPos.row + 0.5) * cellSize;
+                const x2 = (endPos.col + 0.5) * cellSize;
+                const y2 = (endPos.row + 0.5) * cellSize;
+                
+                // Calculate ladder sides
+                const dx = x2 - x1;
+                const dy = y2 - y1;
+                const length = Math.sqrt(dx * dx + dy * dy);
+                const perpX = -dy / length * (cellSize * 0.08);
+                const perpY = dx / length * (cellSize * 0.08);
+                
+                // Ladder rungs count
+                const rungs = Math.floor(length / (cellSize * 0.3));
+                
+                return (
+                  <Group key={`ladder-${index}`}>
+                    {/* Ladder sides */}
+                    <Line
+                      points={[
+                        x1 + perpX, y1 + perpY,
+                        x2 + perpX, y2 + perpY
+                      ]}
+                      stroke="#8b5cf6"
+                      strokeWidth={cellSize * 0.08}
+                      lineCap="round"
+                      shadowBlur={5}
+                      shadowOpacity={0.3}
+                    />
+                    <Line
+                      points={[
+                        x1 - perpX, y1 - perpY,
+                        x2 - perpX, y2 - perpY
+                      ]}
+                      stroke="#8b5cf6"
+                      strokeWidth={cellSize * 0.08}
+                      lineCap="round"
+                      shadowBlur={5}
+                      shadowOpacity={0.3}
+                    />
+                    
+                    {/* Ladder rungs */}
+                    {Array.from({ length: rungs }).map((_, i) => {
+                      const t = (i + 1) / (rungs + 1);
+                      const rx = x1 + dx * t;
+                      const ry = y1 + dy * t;
+                      return (
+                        <Line
+                          key={i}
+                          points={[
+                            rx + perpX, ry + perpY,
+                            rx - perpX, ry - perpY
+                          ]}
+                          stroke="#a78bfa"
+                          strokeWidth={cellSize * 0.06}
+                          lineCap="round"
+                        />
+                      );
+                    })}
+                  </Group>
+                );
+              })}
+            </Layer>
+          </Stage>
+        )}
+      </div>
+    );
+  };
+
+  const renderBoard = () => {
+    if (!gameRound) return null;
+    return renderBoardWithConnections(gameRound.snakes, gameRound.ladders, gameRound.boardSize);
+  };
 
   const handleBackToGames = () => {
     if (passedRounds > 0 || failedRounds > 0) {
@@ -222,53 +719,6 @@ const SALGame: React.FC = () => {
     }
   };
 
-  const renderBoard = () => {
-    if (!gameRound) return null;
-
-    const cells = gameRound.boardSize * gameRound.boardSize;
-    const rows = [];
-    
-    for (let row = gameRound.boardSize - 1; row >= 0; row--) {
-      const cellsInRow = [];
-      for (let col = 0; col < gameRound.boardSize; col++) {
-        const cellNumber = row % 2 === (gameRound.boardSize - 1) % 2
-          ? row * gameRound.boardSize + col + 1
-          : row * gameRound.boardSize + (gameRound.boardSize - col);
-        
-        // Check for snake or ladder
-        const snake = gameRound.snakes.find(s => s.head === cellNumber);
-        const ladder = gameRound.ladders.find(l => l.bottom === cellNumber);
-        
-        let cellClass = 'sal-cell';
-        let cellContent = cellNumber.toString();
-        
-        if (snake) {
-          cellClass += ' snake-head';
-          cellContent = `🐍 ${cellNumber}→${snake.tail}`;
-        } else if (ladder) {
-          cellClass += ' ladder-bottom';
-          cellContent = `🪜 ${cellNumber}→${ladder.top}`;
-        }
-        
-        if (cellNumber === 1) cellClass += ' start-cell';
-        if (cellNumber === cells) cellClass += ' end-cell';
-        
-        cellsInRow.push(
-          <div key={cellNumber} className={cellClass}>
-            {cellContent}
-          </div>
-        );
-      }
-      rows.push(
-        <div key={row} className="sal-row">
-          {cellsInRow}
-        </div>
-      );
-    }
-    
-    return <div className="sal-board">{rows}</div>;
-  };
-
   return (
     <div className="sal-game">
       <div className="sal-nav">
@@ -339,8 +789,13 @@ const SALGame: React.FC = () => {
               </button>
             </div>
           </div>
+          
+          <div className="setup-board-preview">
+            <h3>Board Preview</h3>
+            {renderBoardWithConnections(previewSnakes, previewLadders, boardSize)}
+          </div>
         </div>
-      )}
+        )}
 
       {gameStatus !== 'setup' && gameRound && (
         <>
@@ -378,24 +833,6 @@ const SALGame: React.FC = () => {
           <div className="sal-board-section">
             <h3>Game Board</h3>
             {renderBoard()}
-            <div className="board-legend">
-              <div className="legend-item">
-                <span className="legend-icon start">1</span>
-                <span>Start Cell</span>
-              </div>
-              <div className="legend-item">
-                <span className="legend-icon snake">🐍</span>
-                <span>Snake (Head → Tail)</span>
-              </div>
-              <div className="legend-item">
-                <span className="legend-icon ladder">🪜</span>
-                <span>Ladder (Bottom → Top)</span>
-              </div>
-              <div className="legend-item">
-                <span className="legend-icon end">{gameRound.boardSize * gameRound.boardSize}</span>
-                <span>End Cell</span>
-              </div>
-            </div>
           </div>
 
           {solution && (
