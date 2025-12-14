@@ -4,6 +4,11 @@ import Preloader from './components/Common/Preloader'
 import PlayerNameModal from './components/Common/PlayerNameModal'
 import { usePreloader } from './hooks/usePreloader'
 import brainGif from './assets/brain.gif'
+import snakeLadderImg from './assets/snake_and_ladder.png'
+import trafficSimulationImg from './assets/traffic_simulation.png'
+import travelingSalesmanImg from './assets/travelling_salesman.jpg'
+import towerOfHanoiImg from './assets/tower_of_hanoi.png'
+import eightQueensImg from './assets/eight_queens.jpg'
 import './App.css'
 
 function App() {
@@ -86,13 +91,13 @@ function App() {
 
         <div id="games-section" className="games-section-wrapper">
           <div className="section-header">
-            <h2>🎮 Choose Your Algorithm Challenge</h2>
+            <h2>Choose Your Algorithm Challenge</h2>
             <p>Select a game to start your algorithmic adventure</p>
           </div>
           
           <div className="game-grid">
           <div className="game-card">
-            <div className="game-icon">🐍</div>
+            <div className="game-icon"><img src={snakeLadderImg} alt="Snake & Ladder" /></div>
             <h3>Snake & Ladder</h3>
             <p>Minimum dice throws calculation using BFS and dynamic programming techniques</p>
             <div className="game-tags">
@@ -103,7 +108,7 @@ function App() {
           </div>
           
           <div className="game-card">
-            <div className="game-icon">🚦</div>
+            <div className="game-icon"><img src={trafficSimulationImg} alt="Traffic Simulation" /></div>
             <h3>Traffic Simulation</h3>
             <p>Maximum flow algorithms to optimize traffic routing systems</p>
             <div className="game-tags">
@@ -114,7 +119,7 @@ function App() {
           </div>
           
           <div className="game-card">
-            <div className="game-icon">🗺️</div>
+            <div className="game-icon"><img src={travelingSalesmanImg} alt="Traveling Salesman" /></div>
             <h3>Traveling Salesman</h3>
             <p>Shortest route optimization using advanced heuristic approaches</p>
             <div className="game-tags">
@@ -125,7 +130,7 @@ function App() {
           </div>
           
           <div className="game-card">
-            <div className="game-icon">🗼</div>
+            <div className="game-icon"><img src={towerOfHanoiImg} alt="Tower of Hanoi" /></div>
             <h3>Tower of Hanoi</h3>
             <p>Classic recursive puzzle demonstrating divide and conquer strategy</p>
             <div className="game-tags">
@@ -136,7 +141,7 @@ function App() {
           </div>
           
           <div className="game-card">
-            <div className="game-icon">♛</div>
+            <div className="game-icon"><img src={eightQueensImg} alt="Eight Queens" /></div>
             <h3>Eight Queens</h3>
             <p>Chess placement challenge using backtracking algorithms</p>
             <div className="game-tags">
