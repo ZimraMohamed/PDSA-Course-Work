@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import './PlayerNameModal.css';
+import avatarGif from '../../assets/avatar.gif';
 
 interface PlayerNameModalProps {
   isOpen: boolean;
@@ -74,7 +75,8 @@ const PlayerNameModal: React.FC<PlayerNameModalProps> = ({ isOpen, onClose, onSu
         </button>
         
         <div className="player-modal-header">
-          <div className="player-modal-icon">🎮</div>
+          {/* Avatar image above the title */}
+          <img src={avatarGif} alt="Player Avatar" className="player-modal-avatar" />
           <h2>Welcome, Player!</h2>
           <p>Enter your name to start playing <strong>{gameName}</strong></p>
         </div>

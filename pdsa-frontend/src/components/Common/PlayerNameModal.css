@@ -243,6 +243,18 @@
   gap: 0.5rem;
 }
 
+.player-modal-avatar {
+  display: block;
+  margin: 0 auto 1.2rem auto;
+  width: 180px;
+  height: 180px;
+  border-radius: 50%;
+  object-fit: cover;
+  box-shadow: 0 4px 18px rgba(64,224,208,0.18), 0 1.5px 8px rgba(0,0,0,0.10);
+  border: 2px solid #40e0d0;
+  background: #fff;
+}
+
 /* Responsive Design */
 @media (max-width: 768px) {
   .player-modal-content {
