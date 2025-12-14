@@ -737,7 +737,7 @@ const SALGame: React.FC = () => {
           ← Back to Games
         </button>
         <button onClick={() => navigate('/games/sal/stats')} className="sal-stats-btn">
-          📊 View Statistics
+          View Statistics
         </button>
       </div>
 

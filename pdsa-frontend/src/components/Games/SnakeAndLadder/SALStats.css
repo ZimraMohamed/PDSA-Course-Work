@@ -1,6 +1,6 @@
 .sal-stats {
   min-height: 100vh;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: transparent;
   padding: 20px;
 }
 
@@ -13,21 +13,30 @@
 
 .sal-stats-back-btn,
 .sal-stats-play-btn {
-  padding: 12px 24px;
-  font-size: 16px;
-  font-weight: 500;
-  border: none;
-  border-radius: 8px;
+  background: transparent;
+  color: #40e0d0 !important;
+  border: 2px solid #40e0d0;
+  padding: 10px 24px;
+  border-radius: 25px;
+  font-weight: 600;
+  font-size: 1rem;
   cursor: pointer;
-  transition: all 0.3s ease;
-  background: white;
-  color: #667eea;
+  transition: all 0.3s cubic-bezier(0.4,0,0.2,1), box-shadow 0.3s cubic-bezier(0.4,0,0.2,1);
+  text-decoration: none;
+  box-shadow: 0 0 12px 2px rgba(64,224,208,0.18);
+  letter-spacing: 0.5px;
+  outline: none;
+  position: relative;
+  z-index: 1;
+  margin-right: 1rem;
 }
 
 .sal-stats-back-btn:hover,
 .sal-stats-play-btn:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+  background: linear-gradient(135deg, #40e0d0 0%, #64ffda 100%);
+  color: #0f0f23 !important;
+  border-color: #40e0d0;
+  box-shadow: 0 0 24px 4px rgba(64,224,208,0.28);
 }
 
 .sal-stats-header {
