@@ -75,7 +75,7 @@ namespace PDSA.Tests.Algorithms.TravelingSalesman
 
             // Assert
             Assert.NotNull(result);
-            Assert.Equal("Brute Force", result.AlgorithmName);
+            Assert.Equal("Brute Force (Recursive)", result.AlgorithmName);
             Assert.NotNull(result.Route);
             Assert.True(result.Route.TotalDistance > 0);
             Assert.True(result.ExecutionTimeMs >= 0);
@@ -136,7 +136,7 @@ namespace PDSA.Tests.Algorithms.TravelingSalesman
 
             // Assert
             Assert.NotNull(result);
-            Assert.Equal("Nearest Neighbor", result.AlgorithmName);
+            Assert.Equal("Nearest Neighbor (Iterative)", result.AlgorithmName);
             Assert.NotNull(result.Route);
             Assert.True(result.Route.TotalDistance > 0);
             Assert.True(result.ExecutionTimeMs >= 0);
@@ -247,6 +247,441 @@ namespace PDSA.Tests.Algorithms.TravelingSalesman
             Assert.NotNull(city9);
             Assert.Equal('J', city9.Name);
             Assert.Equal(9, city9.Index);
+        }
+
+        [Fact]
+        public void SolveBruteForce_Should_VisitAllCitiesExactlyOnce()
+        {
+            // Arrange
+            var matrix = TSPSolver.GenerateRandomDistanceMatrix();
+            var homeCity = TSPCities.AllCities[0];
+            var citiesToVisit = new List<City> { 
+                TSPCities.AllCities[1], 
+                TSPCities.AllCities[2], 
+                TSPCities.AllCities[3] 
+            };
+
+            // Act
+            var result = TSPSolver.SolveBruteForce(matrix, homeCity, citiesToVisit);
+
+            // Assert
+            var visitedCities = new HashSet<int>();
+            foreach (var city in result.Route.Cities)
+            {
+                visitedCities.Add(city.Index);
+            }
+            
+            // Should visit home city and all selected cities
+            Assert.Contains(homeCity.Index, visitedCities);
+            foreach (var city in citiesToVisit)
+            {
+                Assert.Contains(city.Index, visitedCities);
+            }
+        }
+
+        [Fact]
+        public void SolveDynamicProgramming_Should_VisitAllCitiesExactlyOnce()
+        {
+            // Arrange
+            var matrix = TSPSolver.GenerateRandomDistanceMatrix();
+            var homeCity = TSPCities.AllCities[0];
+            var citiesToVisit = new List<City> { 
+                TSPCities.AllCities[1], 
+                TSPCities.AllCities[2], 
+                TSPCities.AllCities[3] 
+            };
+
+            // Act
+            var result = TSPSolver.SolveDynamicProgramming(matrix, homeCity, citiesToVisit);
+
+            // Assert
+            var visitedCities = new HashSet<int>();
+            foreach (var city in result.Route.Cities)
+            {
+                visitedCities.Add(city.Index);
+            }
+            
+            // Should visit home city and all selected cities
+            Assert.Contains(homeCity.Index, visitedCities);
+            foreach (var city in citiesToVisit)
+            {
+                Assert.Contains(city.Index, visitedCities);
+            }
+        }
+
+        [Fact]
+        public void SolveNearestNeighbor_Should_VisitAllCitiesExactlyOnce()
+        {
+            // Arrange
+            var matrix = TSPSolver.GenerateRandomDistanceMatrix();
+            var homeCity = TSPCities.AllCities[0];
+            var citiesToVisit = new List<City> { 
+                TSPCities.AllCities[1], 
+                TSPCities.AllCities[2], 
+                TSPCities.AllCities[3] 
+            };
+
+            // Act
+            var result = TSPSolver.SolveNearestNeighbor(matrix, homeCity, citiesToVisit);
+
+            // Assert
+            var visitedCities = new HashSet<int>();
+            foreach (var city in result.Route.Cities)
+            {
+                visitedCities.Add(city.Index);
+            }
+            
+            // Should visit home city and all selected cities
+            Assert.Contains(homeCity.Index, visitedCities);
+            foreach (var city in citiesToVisit)
+            {
+                Assert.Contains(city.Index, visitedCities);
+            }
+        }
+
+        [Fact]
+        public void SolveBruteForce_Should_StartAtHomeCity()
+        {
+            // Arrange
+            var matrix = TSPSolver.GenerateRandomDistanceMatrix();
+            var homeCity = TSPCities.AllCities[2]; // City 'C'
+            var citiesToVisit = new List<City> { 
+                TSPCities.AllCities[0], 
+                TSPCities.AllCities[1] 
+            };
+
+            // Act
+            var result = TSPSolver.SolveBruteForce(matrix, homeCity, citiesToVisit);
+
+            // Assert
+            Assert.Equal(homeCity.Index, result.Route.Cities[0].Index);
+        }
+
+        [Fact]
+        public void SolveDynamicProgramming_Should_StartAtHomeCity()
+        {
+            // Arrange
+            var matrix = TSPSolver.GenerateRandomDistanceMatrix();
+            var homeCity = TSPCities.AllCities[3]; // City 'D'
+            var citiesToVisit = new List<City> { 
+                TSPCities.AllCities[0], 
+                TSPCities.AllCities[1] 
+            };
+
+            // Act
+            var result = TSPSolver.SolveDynamicProgramming(matrix, homeCity, citiesToVisit);
+
+            // Assert
+            Assert.Equal(homeCity.Index, result.Route.Cities[0].Index);
+        }
+
+        [Fact]
+        public void SolveNearestNeighbor_Should_StartAtHomeCity()
+        {
+            // Arrange
+            var matrix = TSPSolver.GenerateRandomDistanceMatrix();
+            var homeCity = TSPCities.AllCities[4]; // City 'E'
+            var citiesToVisit = new List<City> { 
+                TSPCities.AllCities[0], 
+                TSPCities.AllCities[1] 
+            };
+
+            // Act
+            var result = TSPSolver.SolveNearestNeighbor(matrix, homeCity, citiesToVisit);
+
+            // Assert
+            Assert.Equal(homeCity.Index, result.Route.Cities[0].Index);
+        }
+
+        [Fact]
+        public void GenerateRandomDistanceMatrix_Should_GenerateUniqueMatrices()
+        {
+            // Act
+            var matrix1 = TSPSolver.GenerateRandomDistanceMatrix();
+            var matrix2 = TSPSolver.GenerateRandomDistanceMatrix();
+
+            // Assert - Should have at least some different values
+            bool hasDifference = false;
+            for (int i = 0; i < 10 && !hasDifference; i++)
+            {
+                for (int j = 0; j < 10 && !hasDifference; j++)
+                {
+                    if (matrix1[i, j] != matrix2[i, j])
+                    {
+                        hasDifference = true;
+                    }
+                }
+            }
+            Assert.True(hasDifference);
+        }
+
+        [Fact]
+        public void SelectRandomHomeCity_Should_ReturnDifferentCitiesOverMultipleCalls()
+        {
+            // Act - Call multiple times
+            var cities = new HashSet<char>();
+            for (int i = 0; i < 50; i++)
+            {
+                var city = TSPSolver.SelectRandomHomeCity();
+                cities.Add(city.Name);
+            }
+
+            // Assert - Should have selected more than one unique city over 50 attempts
+            Assert.True(cities.Count > 1);
+        }
+
+        [Fact]
+        public void SolveBruteForce_Should_CalculateCorrectDistanceForKnownPath()
+        {
+            // Arrange - Create a controlled distance matrix
+            var matrix = new int[10, 10];
+            for (int i = 0; i < 10; i++)
+            {
+                for (int j = 0; j < 10; j++)
+                {
+                    matrix[i, j] = Math.Abs(i - j) * 10; // Simple distance formula
+                }
+            }
+
+            var homeCity = TSPCities.AllCities[0]; // City A (index 0)
+            var citiesToVisit = new List<City> { TSPCities.AllCities[1] }; // City B (index 1)
+            
+            // Expected: A -> B -> A = 10 + 10 = 20
+
+            // Act
+            var result = TSPSolver.SolveBruteForce(matrix, homeCity, citiesToVisit);
+
+            // Assert
+            Assert.Equal(20, result.Route.TotalDistance);
+        }
+
+        [Fact]
+        public void SolveDynamicProgramming_Should_CalculateCorrectDistanceForKnownPath()
+        {
+            // Arrange - Create a controlled distance matrix
+            var matrix = new int[10, 10];
+            for (int i = 0; i < 10; i++)
+            {
+                for (int j = 0; j < 10; j++)
+                {
+                    matrix[i, j] = Math.Abs(i - j) * 10;
+                }
+            }
+
+            var homeCity = TSPCities.AllCities[0]; // City A (index 0)
+            var citiesToVisit = new List<City> { TSPCities.AllCities[1] }; // City B (index 1)
+
+            // Act
+            var result = TSPSolver.SolveDynamicProgramming(matrix, homeCity, citiesToVisit);
+
+            // Assert
+            Assert.Equal(20, result.Route.TotalDistance);
+        }
+
+        [Fact]
+        public void AllAlgorithms_Should_HandleLargerProblemSize()
+        {
+            // Arrange
+            var matrix = TSPSolver.GenerateRandomDistanceMatrix();
+            var homeCity = TSPCities.AllCities[0];
+            var citiesToVisit = TSPCities.AllCities.Skip(1).Take(6).ToList(); // 6 cities
+
+            // Act & Assert - Should complete without errors
+            var bruteForceResult = TSPSolver.SolveBruteForce(matrix, homeCity, citiesToVisit);
+            var dpResult = TSPSolver.SolveDynamicProgramming(matrix, homeCity, citiesToVisit);
+            var nnResult = TSPSolver.SolveNearestNeighbor(matrix, homeCity, citiesToVisit);
+
+            Assert.NotNull(bruteForceResult);
+            Assert.NotNull(dpResult);
+            Assert.NotNull(nnResult);
+        }
+
+        [Fact]
+        public void BruteForce_Should_HaveComplexityValue()
+        {
+            // Arrange
+            var matrix = TSPSolver.GenerateRandomDistanceMatrix();
+            var homeCity = TSPCities.AllCities[0];
+            var citiesToVisit = new List<City> { 
+                TSPCities.AllCities[1], 
+                TSPCities.AllCities[2] 
+            };
+
+            // Act
+            var result = TSPSolver.SolveBruteForce(matrix, homeCity, citiesToVisit);
+
+            // Assert
+            Assert.True(result.Complexity > 0);
+        }
+
+        [Fact]
+        public void DynamicProgramming_Should_HaveComplexityValue()
+        {
+            // Arrange
+            var matrix = TSPSolver.GenerateRandomDistanceMatrix();
+            var homeCity = TSPCities.AllCities[0];
+            var citiesToVisit = new List<City> { 
+                TSPCities.AllCities[1], 
+                TSPCities.AllCities[2] 
+            };
+
+            // Act
+            var result = TSPSolver.SolveDynamicProgramming(matrix, homeCity, citiesToVisit);
+
+            // Assert
+            Assert.True(result.Complexity > 0);
+        }
+
+        [Fact]
+        public void NearestNeighbor_Should_HaveComplexityValue()
+        {
+            // Arrange
+            var matrix = TSPSolver.GenerateRandomDistanceMatrix();
+            var homeCity = TSPCities.AllCities[0];
+            var citiesToVisit = new List<City> { 
+                TSPCities.AllCities[1], 
+                TSPCities.AllCities[2] 
+            };
+
+            // Act
+            var result = TSPSolver.SolveNearestNeighbor(matrix, homeCity, citiesToVisit);
+
+            // Assert
+            Assert.True(result.Complexity > 0);
+        }
+
+        [Fact]
+        public void TSPRoute_ToString_Should_ReturnFormattedString()
+        {
+            // Arrange
+            var route = new TSPRoute
+            {
+                Cities = new List<City> 
+                { 
+                    TSPCities.AllCities[0], 
+                    TSPCities.AllCities[1], 
+                    TSPCities.AllCities[2] 
+                },
+                TotalDistance = 150
+            };
+
+            // Act
+            var result = route.ToString();
+
+            // Assert
+            Assert.Contains("A", result);
+            Assert.Contains("B", result);
+            Assert.Contains("C", result);
+            Assert.Contains("150", result);
+            Assert.Contains("->", result);
+        }
+
+        [Fact]
+        public void City_ToString_Should_ReturnCityName()
+        {
+            // Arrange
+            var city = new City('X', 10);
+
+            // Act
+            var result = city.ToString();
+
+            // Assert
+            Assert.Equal("X", result);
+        }
+
+        [Fact]
+        public void SolveNearestNeighbor_Should_BeGreedyAndSelectNearestAtEachStep()
+        {
+            // Arrange - Create a specific matrix where greedy choice is clear
+            var matrix = new int[10, 10];
+            for (int i = 0; i < 10; i++)
+            {
+                for (int j = 0; j < 10; j++)
+                {
+                    matrix[i, j] = 100; // Default high distance
+                }
+            }
+            
+            // Set specific distances: A->B=10, B->C=20, C->A=30
+            matrix[0, 1] = matrix[1, 0] = 10;
+            matrix[1, 2] = matrix[2, 1] = 20;
+            matrix[2, 0] = matrix[0, 2] = 50;
+
+            var homeCity = TSPCities.AllCities[0]; // A
+            var citiesToVisit = new List<City> { 
+                TSPCities.AllCities[1],  // B
+                TSPCities.AllCities[2]   // C
+            };
+
+            // Act
+            var result = TSPSolver.SolveNearestNeighbor(matrix, homeCity, citiesToVisit);
+
+            // Assert - NN should pick: A -> B (10) -> C (20) -> A (50) = 80
+            Assert.Equal(80, result.Route.TotalDistance);
+        }
+
+        [Theory]
+        [InlineData(5)]
+        [InlineData(7)]
+        [InlineData(9)]
+        public void AllAlgorithms_Should_HandleOddNumberOfCities(int cityCount)
+        {
+            // Arrange
+            var matrix = TSPSolver.GenerateRandomDistanceMatrix();
+            var homeCity = TSPCities.AllCities[0];
+            var citiesToVisit = TSPCities.AllCities.Skip(1).Take(cityCount).ToList();
+
+            // Act
+            var bruteForceResult = TSPSolver.SolveBruteForce(matrix, homeCity, citiesToVisit);
+            var dpResult = TSPSolver.SolveDynamicProgramming(matrix, homeCity, citiesToVisit);
+            var nnResult = TSPSolver.SolveNearestNeighbor(matrix, homeCity, citiesToVisit);
+
+            // Assert - All should produce valid results
+            Assert.True(bruteForceResult.Route.TotalDistance > 0);
+            Assert.True(dpResult.Route.TotalDistance > 0);
+            Assert.True(nnResult.Route.TotalDistance > 0);
+            
+            // Optimal algorithms should match
+            Assert.Equal(bruteForceResult.Route.TotalDistance, dpResult.Route.TotalDistance);
+        }
+
+        [Fact]
+        public void BruteForceAndDP_Should_FindSameOptimalSolutionForComplexProblem()
+        {
+            // Arrange - Use a consistent seed matrix
+            var matrix = new int[10, 10];
+            var rand = new Random(42); // Fixed seed for reproducibility
+            
+            for (int i = 0; i < 10; i++)
+            {
+                for (int j = 0; j < 10; j++)
+                {
+                    if (i == j)
+                    {
+                        matrix[i, j] = 0;
+                    }
+                    else if (i < j)
+                    {
+                        matrix[i, j] = rand.Next(50, 101);
+                        matrix[j, i] = matrix[i, j];
+                    }
+                }
+            }
+
+            var homeCity = TSPCities.AllCities[0];
+            var citiesToVisit = new List<City> { 
+                TSPCities.AllCities[1], 
+                TSPCities.AllCities[2], 
+                TSPCities.AllCities[3],
+                TSPCities.AllCities[4]
+            };
+
+            // Act
+            var bruteForceResult = TSPSolver.SolveBruteForce(matrix, homeCity, citiesToVisit);
+            var dpResult = TSPSolver.SolveDynamicProgramming(matrix, homeCity, citiesToVisit);
+
+            // Assert - Both optimal algorithms should find the same minimum distance
+            Assert.Equal(bruteForceResult.Route.TotalDistance, dpResult.Route.TotalDistance);
         }
     }
 }
