@@ -60,8 +60,7 @@ function App() {
 
       <header className="app-header">
         <div className="header-content">
-          <h1>🎮 PDSA Gaming Platform</h1>
-          <p>Algorithm Challenge Arena</p>
+          <h1>Algorithm Challenge Arena</h1>
           <button className="scroll-to-games-btn" onClick={scrollToGames}>
             <span>Explore Games</span>
             <span className="scroll-arrow">↓</span>
@@ -71,10 +70,17 @@ function App() {
       
       <main className="app-main">
         <section className="intro-section">
-          <h2>Master Data Structures & Algorithms Through Gaming</h2>
-          <p>Challenge yourself with interactive algorithmic puzzles designed to enhance your problem-solving skills</p>
-          <div className="brain-animation-container">
-            <img src={brainGif} alt="Brain thinking animation" className="brain-gif" />
+          <div className="intro-content">
+            <div className="intro-text">
+              <h2 className="intro-slogan">
+                <span className="slogan-just">Just</span>
+                <span className="slogan-solve">Solve It!</span>
+              </h2>
+              <p className="intro-description">Play your way to mastery: Engage with interactive logic puzzles that build expert-level algorithmic thinking.</p>
+            </div>
+            <div className="brain-animation-container">
+              <img src={brainGif} alt="Brain thinking animation" className="brain-gif" />
+            </div>
           </div>
         </section>
 
