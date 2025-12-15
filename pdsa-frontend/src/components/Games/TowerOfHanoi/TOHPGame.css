@@ -369,6 +369,18 @@
   margin-bottom: 24px;
 }
 
+.input-hint {
+  display: block;
+  margin-top: 4px;
+  padding: 8px 12px;
+  background: rgba(15, 15, 35, 0.8);
+  border-radius: 6px;
+  font-size: 0.875rem;
+  color: #40e0d0;
+  font-style: italic;
+  text-align: center;
+}
+
 /* Moves Counter with +/- buttons */
 .moves-counter {
   display: flex;

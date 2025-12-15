@@ -49,6 +49,12 @@ const TOHPGame: React.FC = () => {
     console.log(`Game initialized with ${numPegs} pegs and ${numDisks} disks.`);
   }, [numPegs, numDisks]);
 
+  // Update move count based on sequence
+  useEffect(() => {
+    const moves = userSequence.split(',').map(s => s.trim()).filter(s => s.length > 0);
+    setUserMovesCount(String(moves.length));
+  }, [userSequence]);
+
   const handleBackToGames = () => {
     if (passedRounds > 0 || failedRounds > 0) {
       setShowConfirmDialog(true);
@@ -201,12 +207,7 @@ const TOHPGame: React.FC = () => {
         return copy;
       });
 
-      // Automatically update move count and sequence
-      setUserMovesCount((prevCount) => {
-        const currentCount = parseInt(prevCount) || 0;
-        return String(currentCount + 1);
-      });
-
+      // Automatically update sequence
       setUserSequence((prevSequence) => {
         const move = `${fromPegLabel}→${toPegLabel}`;
         return prevSequence ? `${prevSequence}, ${move}` : move;
@@ -387,10 +388,11 @@ const TOHPGame: React.FC = () => {
                 id="seq-moves"
                 placeholder="Move disks between pegs or enter sequence manually (e.g., A→C, B→A)"
                 value={userSequence}
-                onChange={(e) => setUserSequence(e.target.value)}
+                onChange={(e) => setUserSequence(e.target.value.replace(/\s*-\s*/g, ' → '))}
                 rows={3}
                 className="modern-textarea"
               />
+              <small className="input-hint">Accepted formats: A - C, B - A or A → C, B → A</small>
             </div>
 
             <button
