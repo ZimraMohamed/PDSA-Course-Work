@@ -1121,12 +1121,18 @@
 
 .result-actions {
   display: flex;
-  gap: 12px;
+  flex-direction: row;
+  align-items: baseline;
+  gap: 8px;
+  width: 100%;
+  margin-top: 0;
+  flex-wrap: nowrap;
 }
 
 .result-btn {
   flex: 1;
-  padding: 14px 32px;
+  height: 52px;
+  padding: 0 32px;
   border: none;
   border-radius: 10px;
   font-size: 16px;
@@ -1135,17 +1141,24 @@
   transition: all 0.2s ease;
   outline: none;
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+  box-sizing: border-box;
+  white-space: nowrap;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .next-round-btn {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  color: white;
-  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+  background: #0E0824;
+  color: #40e0d0;
+  border: 2px solid #40e0d0;
+  box-shadow: 0 4px 12px rgba(64, 224, 208, 0.2);
 }
 
 .next-round-btn:hover {
   transform: translateY(-2px);
-  box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
+  box-shadow: 0 6px 20px rgba(64, 224, 208, 0.4);
+  background: #0E0824;
 }
 
 .next-round-btn:active {
@@ -1153,14 +1166,14 @@
 }
 
 .back-btn {
-  background: white;
-  color: #6b7280;
-  border: 2px solid #e5e7eb;
+  background: #0E0824;
+  color: #40e0d0;
+  border: 2px solid #40e0d0;
 }
 
 .back-btn:hover {
-  background: #f9fafb;
-  border-color: #d1d5db;
+  background: #0E0824;
+  box-shadow: 0 0 15px rgba(64, 224, 208, 0.3);
   transform: translateY(-2px);
 }
 
@@ -1169,7 +1182,7 @@
 }
 
 /* Responsive adjustments */
-@media (max-width: 768px) {
+@media (max-width: 600px) {
   .result-card {
     padding: 24px;
   }

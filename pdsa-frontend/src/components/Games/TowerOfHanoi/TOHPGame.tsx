@@ -381,15 +381,15 @@ const TOHPGame: React.FC = () => {
 
             <div className="input-group">
               <label htmlFor="seq-moves" className="input-label">
-                Move Sequence (Auto-tracked)
+                Move Sequence
               </label>
               <textarea
                 id="seq-moves"
-                placeholder="Move disks between pegs to build sequence automatically"
+                placeholder="Move disks between pegs or enter sequence manually (e.g., A→C, B→A)"
                 value={userSequence}
+                onChange={(e) => setUserSequence(e.target.value)}
                 rows={3}
                 className="modern-textarea"
-                readOnly
               />
             </div>
 
