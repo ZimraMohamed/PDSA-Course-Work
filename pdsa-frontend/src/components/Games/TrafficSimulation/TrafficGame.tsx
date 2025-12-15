@@ -178,7 +178,7 @@ export default function TrafficGame() {
           ← Back to Games
         </button>
         <button onClick={() => navigate('/games/traffic-simulation/stats')} className="traffic-stats-btn">
-          📊 View Statistics
+          View Statistics
         </button>
       </div>
 

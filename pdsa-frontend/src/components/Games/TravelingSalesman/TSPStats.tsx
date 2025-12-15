@@ -60,18 +60,18 @@ const TSPStats: React.FC = () => {
 
   const loadPlayerHistory = async () => {
     const response = await fetch(`${API_BASE_URL}/api/tsp/player-history/${encodeURIComponent(playerName)}`);
-    
+
     if (!response.ok) throw new Error('Failed to load player history');
-    
+
     const data = await response.json();
     setPlayerHistory(data);
   };
 
   const loadLeaderboard = async () => {
     const response = await fetch(`${API_BASE_URL}/api/tsp/leaderboard?top=20`);
-    
+
     if (!response.ok) throw new Error('Failed to load leaderboard');
-    
+
     const data = await response.json();
     setLeaderboard(data);
   };
@@ -96,23 +96,23 @@ const TSPStats: React.FC = () => {
           ← Back to Games
         </button>
         <button onClick={() => navigate('/games/tsp')} className="tsp-stats-play-btn">
-          🎮 Play Game
+          Play Game
         </button>
       </div>
 
       <div className="tsp-stats-header">
-        <h1>📊 TSP Statistics</h1>
+        <h1>TSP Statistics</h1>
         <p>View game history and leaderboard</p>
       </div>
 
       <div className="tsp-stats-tabs">
-        <button 
+        <button
           className={`tab-btn ${activeTab === 'history' ? 'active' : ''}`}
           onClick={() => setActiveTab('history')}
         >
           My History
         </button>
-        <button 
+        <button
           className={`tab-btn ${activeTab === 'leaderboard' ? 'active' : ''}`}
           onClick={() => setActiveTab('leaderboard')}
         >
@@ -143,9 +143,6 @@ const TSPStats: React.FC = () => {
               {playerHistory.length === 0 ? (
                 <div className="no-data">
                   <p>No game history found. Play some games to see your statistics!</p>
-                  <button onClick={() => navigate('/games/tsp')} className="play-now-btn">
-                    Play Now
-                  </button>
                 </div>
               ) : (
                 <div className="history-list">
@@ -155,23 +152,23 @@ const TSPStats: React.FC = () => {
                         <h3>Round #{round.roundId}</h3>
                         <span className="history-date">{formatDate(round.datePlayed)}</span>
                       </div>
-                      
+
                       <div className="history-details">
                         <div className="detail-row">
                           <span className="detail-label">Home City:</span>
                           <span className="detail-value">{round.homeCity}</span>
                         </div>
-                        
+
                         <div className="detail-row">
                           <span className="detail-label">Selected Cities:</span>
                           <span className="detail-value">{round.selectedCities.join(', ')}</span>
                         </div>
-                        
+
                         <div className="detail-row">
                           <span className="detail-label">Optimal Route:</span>
                           <span className="detail-value route">{formatRoute(round.shortestRoute, round.homeCity)}</span>
                         </div>
-                        
+
                         <div className="detail-row highlight">
                           <span className="detail-label">Shortest Distance:</span>
                           <span className="detail-value distance">{round.shortestDistance} km</span>
@@ -217,8 +214,8 @@ const TSPStats: React.FC = () => {
                     </thead>
                     <tbody>
                       {leaderboard.map((entry, index) => (
-                        <tr 
-                          key={index} 
+                        <tr
+                          key={index}
                           className={entry.playerName === playerName ? 'current-player' : ''}
                         >
                           <td className="rank">

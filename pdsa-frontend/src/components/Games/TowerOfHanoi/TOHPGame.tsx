@@ -87,7 +87,7 @@ const TOHPGame: React.FC = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     // Scroll to bottom to show result section
     setTimeout(() => {
       window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' });
@@ -97,68 +97,68 @@ const TOHPGame: React.FC = () => {
     console.log("Submitting sequence:", userSequence);
 
     try {
-        const res = await fetch("http://localhost:5007/api/TOHP/submit-answer", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
-                numPegs,
-                numDisks,
-                userMovesCount: parseInt(userMovesCount, 10),
-                userSequence,
-                playerName
-            })
-        });
+      const res = await fetch("http://localhost:5007/api/TOHP/submit-answer", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          numPegs,
+          numDisks,
+          userMovesCount: parseInt(userMovesCount, 10),
+          userSequence,
+          playerName
+        })
+      });
 
-        if (!res.ok) {
-            const errData = await res.json();
-            console.error("Backend error:", errData.message || "Unknown error");
-            alert(errData.message || "Backend returned an error.");
-            return;
-        }
+      if (!res.ok) {
+        const errData = await res.json();
+        console.error("Backend error:", errData.message || "Unknown error");
+        alert(errData.message || "Backend returned an error.");
+        return;
+      }
 
-        const data = await res.json();
-        console.log("Backend response:", data);
+      const data = await res.json();
+      console.log("Backend response:", data);
 
-        // Update game progress and show result dialog
-        if (data.correctMoves && data.correctSequence) {
-            const newPassed = passedRounds + 1;
-            setPassedRounds(newPassed);
-            
-            if (newPassed === failedRounds) {
-                setCurrentResult('draw');
-            } else {
-                setCurrentResult('pass');
-            }
+      // Update game progress and show result dialog
+      if (data.correctMoves && data.correctSequence) {
+        const newPassed = passedRounds + 1;
+        setPassedRounds(newPassed);
+
+        if (newPassed === failedRounds) {
+          setCurrentResult('draw');
         } else {
-            const newFailed = failedRounds + 1;
-            setFailedRounds(newFailed);
-            
-            if (newFailed === passedRounds) {
-                setCurrentResult('draw');
-            } else {
-                setCurrentResult('fail');
-            }
+          setCurrentResult('pass');
         }
+      } else {
+        const newFailed = failedRounds + 1;
+        setFailedRounds(newFailed);
 
-        // Prepare user answer and correct answer for dialog
-        const userAnswerText = `Moves: ${userMovesCount}, Sequence: ${userSequence}`;
-        const correctAnswerText = `Moves: ${data.optimalMoves}, Sequence: ${data.correctSequenceList || data.correctSequence}`;
+        if (newFailed === passedRounds) {
+          setCurrentResult('draw');
+        } else {
+          setCurrentResult('fail');
+        }
+      }
 
-        setUserAnswer(userAnswerText);
-        setCorrectAnswer(correctAnswerText);
-        setShowResultDialog(true);
+      // Prepare user answer and correct answer for dialog
+      const userAnswerText = `Moves: ${userMovesCount}, Sequence: ${userSequence}`;
+      const correctAnswerText = `Moves: ${data.optimalMoves}, Sequence: ${data.correctSequenceList || data.correctSequence}`;
+
+      setUserAnswer(userAnswerText);
+      setCorrectAnswer(correctAnswerText);
+      setShowResultDialog(true);
 
     } catch (err) {
-        console.error(err);
-        alert("Error connecting to backend.");
+      console.error(err);
+      alert("Error connecting to backend.");
     }
-};
+  };
 
 
 
   const handlePegClick = (pegIndex: number) => {
     if (isAnimating) return; // Prevent clicks during animation
-    
+
     console.log(`Peg clicked: ${pegIndex}`);
     const peg = pegs[pegIndex];
 
@@ -241,22 +241,22 @@ const TOHPGame: React.FC = () => {
           ← Back to Games
         </button>
         <button onClick={() => navigate('/games/tohp/stats')} className="tohp-stats-btn">
-          📊 View Statistics
+          View Statistics
         </button>
       </div>
 
       <div className="tohp-header">
-        <h1>🗼 Tower of Hanoi</h1>
+        <h1>Tower of Hanoi</h1>
         <p>
           Move all disks to the rightmost peg. Only move one disk at a time, and never place a larger disk on a smaller one.
         </p>
-        
+
         <div className="tsp-game-stats">
           <div className="player-info">
             <span className="player-label">Player:</span>
             <span className="player-name">{playerName}</span>
           </div>
-          
+
           <div className="game-progress">
             <div className="progress-item passed">
               <span className="progress-label">Passed:</span>
@@ -306,14 +306,6 @@ const TOHPGame: React.FC = () => {
               Generate New Puzzle
             </button>
           </div>
-        </div>
-      </div>
-
-      {/* Instructions Section */}
-      <div className="tohp-instructions">
-        <div className="instruction-content">
-          <h3>How to Play</h3>
-          <p>Click on the top disk of any peg to select it, then click on another peg to move it there.</p>
         </div>
       </div>
 
@@ -401,8 +393,8 @@ const TOHPGame: React.FC = () => {
               />
             </div>
 
-            <button 
-              type="submit" 
+            <button
+              type="submit"
               className="tohp-check-btn"
               disabled={!userMovesCount.trim() || !userSequence.trim()}
             >

@@ -7,62 +7,74 @@
 }
 
 /* Navigation */
+/* Navigation */
 .eqp-nav {
   margin-bottom: 20px;
   display: flex;
   justify-content: space-between;
-  gap: 15px;
+  align-items: center;
+  gap: 1.2rem;
 }
 
 .eqp-back-btn,
 .eqp-stats-btn {
-  background: #6b7280;
-  border: none;
-  color: white;
-  padding: 10px 20px;
-  border-radius: 6px;
-  font-weight: 500;
+  background: transparent;
+  color: #40e0d0;
+  border: 2px solid #40e0d0;
+  padding: 10px 24px;
+  border-radius: 25px;
+  font-weight: 600;
+  font-size: 1rem;
   cursor: pointer;
-  transition: all 0.2s ease;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1),
+    box-shadow 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   text-decoration: none;
-  display: inline-block;
-}
-
-.eqp-stats-btn {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  box-shadow: 0 0 12px 2px rgba(64, 224, 208, 0.18);
+  letter-spacing: 0.5px;
+  outline: none;
+  position: relative;
+  z-index: 1;
 }
 
 .eqp-back-btn:hover,
 .eqp-stats-btn:hover {
-  background: #4b5563;
-  transform: translateY(-1px);
+  background: linear-gradient(135deg, #40e0d0 0%, #64ffda 100%);
+  color: #0f0f23;
+  border-color: #40e0d0;
+  box-shadow: 0 0 24px 4px rgba(64, 224, 208, 0.28);
+  transform: translateY(-2px);
 }
 
-.eqp-stats-btn:hover {
-  background: linear-gradient(135deg, #5568d3 0%, #653a8b 100%);
-}
-
+/* Header Section */
 /* Header Section */
 .eqp-header {
   text-align: center;
   margin-bottom: 30px;
-  padding: 20px;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  border-radius: 15px;
-  color: white;
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+  padding: 24px 20px 20px 20px;
+  background: rgba(64, 224, 208, 0.07);
+  border-radius: 18px;
+  color: #40e0d0;
+  box-shadow: 0 8px 32px rgba(64, 224, 208, 0.08),
+    0 2px 12px rgba(0, 0, 0, 0.1);
+  border: 1.5px solid rgba(64, 224, 208, 0.18);
+  position: relative;
 }
 
 .eqp-header h1 {
-  margin: 0 0 10px 0;
   font-size: 2.5rem;
-  font-weight: 700;
+  margin: 0 0 10px 0;
+  font-weight: 800;
+  color: #40e0d0;
+  letter-spacing: 1.5px;
+  text-shadow: 0 0 18px rgba(64, 224, 208, 0.25),
+    0 0 32px rgba(64, 224, 208, 0.12);
 }
 
 .eqp-header p {
-  margin: 0 0 20px 0;
   font-size: 1.2rem;
-  opacity: 0.9;
+  margin: 0 0 20px 0;
+  opacity: 0.92;
+  color: #b0c4d6;
 }
 
 /* Player Info Styles */
@@ -290,6 +302,7 @@
     opacity: 0;
     transform: translateY(-10px);
   }
+
   to {
     opacity: 1;
     transform: translateY(0);
@@ -316,7 +329,7 @@
   display: inline-block;
   border: 8px solid #8b5a3c;
   background: linear-gradient(145deg, #6d4c41 0%, #5d4037 100%);
-  box-shadow: 
+  box-shadow:
     0 10px 40px rgba(0, 0, 0, 0.3),
     inset 0 2px 4px rgba(255, 255, 255, 0.1),
     inset 0 -2px 4px rgba(0, 0, 0, 0.2);
@@ -386,7 +399,7 @@
 .eqp-cell:hover {
   transform: scale(1.08);
   z-index: 10;
-  box-shadow: 
+  box-shadow:
     0 8px 20px rgba(0, 0, 0, 0.3),
     inset 0 2px 8px rgba(255, 255, 255, 0.2);
 }
@@ -416,7 +429,7 @@
 .eqp-submit-btn {
   flex: 1;
   padding: 16px 32px;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: #0E0824;
   color: white;
   border: none;
   border-radius: 12px;
@@ -426,17 +439,18 @@
   letter-spacing: 0.5px;
   cursor: pointer;
   transition: all 0.3s ease;
-  box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+  box-shadow: 0 4px 15px rgba(64, 224, 208, 0.28);
 }
 
 .eqp-submit-btn:hover {
   transform: translateY(-2px);
-  box-shadow: 0 6px 20px rgba(102, 126, 234, 0.6);
-  background: linear-gradient(135deg, #5568d3 0%, #6b3f94 100%);
+  box-shadow: 0 6px 20px rgba(64, 224, 208, 0.4);
+  background: #0E0824;
 }
 
 .eqp-submit-btn:active {
   transform: translateY(0);
+  box-shadow: 0 2px 10px rgba(64, 224, 208, 0.3);
 }
 
 .eqp-cell.queen {
@@ -456,7 +470,7 @@
 
 .eqp-cell.light.queen {
   background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
-  box-shadow: 
+  box-shadow:
     inset 0 2px 12px rgba(245, 158, 11, 0.4),
     0 4px 16px rgba(245, 158, 11, 0.3);
   color: #92400e;
@@ -465,7 +479,7 @@
 
 .eqp-cell.dark.queen {
   background: linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%);
-  box-shadow: 
+  box-shadow:
     inset 0 2px 12px rgba(217, 119, 6, 0.4),
     0 4px 16px rgba(217, 119, 6, 0.3);
   color: #78350f;
@@ -477,9 +491,11 @@
     transform: scale(0) rotate(-180deg);
     opacity: 0;
   }
+
   60% {
     transform: scale(1.2) rotate(10deg);
   }
+
   100% {
     transform: scale(1) rotate(0deg);
     opacity: 1;
@@ -487,10 +503,13 @@
 }
 
 @keyframes queenGlow {
-  0%, 100% {
+
+  0%,
+  100% {
     opacity: 0.6;
     transform: scale(1);
   }
+
   50% {
     opacity: 1;
     transform: scale(1.1);
@@ -777,8 +796,13 @@
 }
 
 @keyframes spin {
-  0% { transform: rotate(0deg); }
-  100% { transform: rotate(360deg); }
+  0% {
+    transform: rotate(0deg);
+  }
+
+  100% {
+    transform: rotate(360deg);
+  }
 }
 
 /* Animation for results */
@@ -787,6 +811,13 @@
 }
 
 @keyframes fadeIn {
-  from { opacity: 0; transform: translateY(20px); }
-  to { opacity: 1; transform: translateY(0); }
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }

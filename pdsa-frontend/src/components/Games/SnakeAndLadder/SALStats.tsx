@@ -67,18 +67,18 @@ const SALStats: React.FC = () => {
 
   const loadPlayerHistory = async () => {
     const response = await fetch(`${API_BASE_URL}/api/sal/player-history/${encodeURIComponent(playerName)}`);
-    
+
     if (!response.ok) throw new Error('Failed to load player history');
-    
+
     const data = await response.json();
     setPlayerHistory(data);
   };
 
   const loadLeaderboard = async () => {
     const response = await fetch(`${API_BASE_URL}/api/sal/leaderboard?top=20`);
-    
+
     if (!response.ok) throw new Error('Failed to load leaderboard');
-    
+
     const data = await response.json();
     setLeaderboard(data);
   };
@@ -105,13 +105,13 @@ const SALStats: React.FC = () => {
       </div>
 
       <div className="sal-stats-tabs">
-        <button 
+        <button
           className={`tab-btn ${activeTab === 'history' ? 'active' : ''}`}
           onClick={() => setActiveTab('history')}
         >
           My History
         </button>
-        <button 
+        <button
           className={`tab-btn ${activeTab === 'leaderboard' ? 'active' : ''}`}
           onClick={() => setActiveTab('leaderboard')}
         >
@@ -142,9 +142,6 @@ const SALStats: React.FC = () => {
               {playerHistory.length === 0 ? (
                 <div className="no-data">
                   <p>No game history found. Play some games to see your statistics!</p>
-                  <button onClick={() => navigate('/games/sal')} className="play-now-btn">
-                    Play Now
-                  </button>
                 </div>
               ) : (
                 <div className="history-list">
@@ -154,23 +151,23 @@ const SALStats: React.FC = () => {
                         <h3>Round #{round.roundId}</h3>
                         <span className="history-date">{formatDate(round.datePlayed)}</span>
                       </div>
-                      
+
                       <div className="history-details">
                         <div className="detail-row">
                           <span className="detail-label">Board Size:</span>
                           <span className="detail-value">{round.boardSize} × {round.boardSize}</span>
                         </div>
-                        
+
                         <div className="detail-row">
                           <span className="detail-label">Snakes:</span>
                           <span className="detail-value">{round.numSnakes}</span>
                         </div>
-                        
+
                         <div className="detail-row">
                           <span className="detail-label">Ladders:</span>
                           <span className="detail-value">{round.numLadders}</span>
                         </div>
-                        
+
                         <div className="detail-row highlight">
                           <span className="detail-label">Minimum Throws:</span>
                           <span className="detail-value throws">{round.minimumThrows}</span>
@@ -216,8 +213,8 @@ const SALStats: React.FC = () => {
                     </thead>
                     <tbody>
                       {leaderboard.map((entry, index) => (
-                        <tr 
-                          key={index} 
+                        <tr
+                          key={index}
                           className={entry.playerName === playerName ? 'current-player' : ''}
                         >
                           <td className="rank">

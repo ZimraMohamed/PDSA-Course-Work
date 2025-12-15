@@ -58,18 +58,18 @@ const TOHPStats: React.FC = () => {
 
   const loadPlayerHistory = async () => {
     const response = await fetch(`${API_BASE_URL}/api/TOHP/player-history/${encodeURIComponent(playerName)}`);
-    
+
     if (!response.ok) throw new Error('Failed to load player history');
-    
+
     const data = await response.json();
     setPlayerHistory(data.rounds || []);
   };
 
   const loadLeaderboard = async () => {
     const response = await fetch(`${API_BASE_URL}/api/TOHP/leaderboard?top=20`);
-    
+
     if (!response.ok) throw new Error('Failed to load leaderboard');
-    
+
     const data = await response.json();
     setLeaderboard(data);
   };
@@ -86,23 +86,23 @@ const TOHPStats: React.FC = () => {
           ← Back to Games
         </button>
         <button onClick={() => navigate('/games/tohp')} className="tohp-stats-play-btn">
-          🎮 Play Game
+          Play Game
         </button>
       </div>
 
       <div className="tohp-stats-header">
-        <h1>🗼 Tower of Hanoi Statistics</h1>
+        <h1>Tower of Hanoi Statistics</h1>
         <p>View game history and leaderboard</p>
       </div>
 
       <div className="tohp-stats-tabs">
-        <button 
+        <button
           className={`tab-btn ${activeTab === 'history' ? 'active' : ''}`}
           onClick={() => setActiveTab('history')}
         >
           My History
         </button>
-        <button 
+        <button
           className={`tab-btn ${activeTab === 'leaderboard' ? 'active' : ''}`}
           onClick={() => setActiveTab('leaderboard')}
         >
@@ -133,9 +133,6 @@ const TOHPStats: React.FC = () => {
               {playerHistory.length === 0 ? (
                 <div className="no-data">
                   <p>No game history found. Play some games to see your statistics!</p>
-                  <button onClick={() => navigate('/games/tohp')} className="play-now-btn">
-                    Play Now
-                  </button>
                 </div>
               ) : (
                 <div className="history-list">
@@ -145,18 +142,18 @@ const TOHPStats: React.FC = () => {
                         <h3>Round #{round.roundId}</h3>
                         <span className="history-date">{formatDate(round.datePlayed)}</span>
                       </div>
-                      
+
                       <div className="history-details">
                         <div className="detail-row">
                           <span className="detail-label">Number of Disks:</span>
                           <span className="detail-value">{round.numDisks}</span>
                         </div>
-                        
+
                         <div className="detail-row">
                           <span className="detail-label">Number of Pegs:</span>
                           <span className="detail-value">{round.numPegs}</span>
                         </div>
-                        
+
                         <div className="detail-row highlight">
                           <span className="detail-label">Optimal Moves:</span>
                           <span className="detail-value moves">{round.correctMoves}</span>
@@ -190,8 +187,8 @@ const TOHPStats: React.FC = () => {
                     </thead>
                     <tbody>
                       {leaderboard.map((entry, index) => (
-                        <tr 
-                          key={index} 
+                        <tr
+                          key={index}
                           className={entry.playerName === playerName ? 'current-player' : ''}
                         >
                           <td className="rank">

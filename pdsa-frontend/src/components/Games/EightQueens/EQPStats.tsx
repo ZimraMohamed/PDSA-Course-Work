@@ -119,12 +119,12 @@ const EQPStats: React.FC = () => {
           ← Back to Games
         </button>
         <button onClick={() => navigate('/games/eqp')} className="eqp-stats-play-btn">
-          🎮 Play Game
+          Play Game
         </button>
       </div>
 
       <div className="eqp-stats-header">
-        <h1>📊 Eight Queens Statistics</h1>
+        <h1>Eight Queens Statistics</h1>
         <p>View your solutions, leaderboard, and algorithm performance</p>
       </div>
 
@@ -166,9 +166,6 @@ const EQPStats: React.FC = () => {
               {playerHistory.length === 0 ? (
                 <div className="no-data">
                   <p>No solutions found yet. Play the game to find solutions!</p>
-                  <button onClick={() => navigate('/games/eqp')} className="play-now-btn">
-                    Play Now
-                  </button>
                 </div>
               ) : (
                 <div className="history-list">
@@ -210,8 +207,8 @@ const EQPStats: React.FC = () => {
                     </thead>
                     <tbody>
                       {leaderboard.map((entry, index) => (
-                        <tr 
-                          key={index} 
+                        <tr
+                          key={index}
                           className={entry.playerName === playerName ? 'current-player' : ''}
                         >
                           <td className="rank">

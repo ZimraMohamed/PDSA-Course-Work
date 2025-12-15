@@ -134,15 +134,15 @@ const EQPGame: React.FC = () => {
     setBoard(prev => {
       const next = prev.map(row => row.map(cell => ({ ...cell })));
       const cell = next[r][c];
-      
+
       // Count current queens
       const currentQueenCount = next.flat().filter(c => c.hasQueen).length;
-      
+
       // If trying to add a queen and already at max (8), don't allow it
       if (!cell.hasQueen && currentQueenCount >= 8) {
         return prev;
       }
-      
+
       cell.hasQueen = !cell.hasQueen;
       return next;
     });
@@ -151,13 +151,13 @@ const EQPGame: React.FC = () => {
   const canPlaceQueen = (r: number, c: number): boolean => {
     const cell = board[r]?.[c];
     if (!cell) return false;
-    
+
     // If cell already has a queen, allow removal
     if (cell.hasQueen) return true;
-    
+
     // Count current queens
     const currentQueenCount = board.flat().filter(c => c.hasQueen).length;
-    
+
     // If trying to add a queen and already at max (8), don't allow it
     return currentQueenCount < 8;
   };
@@ -180,18 +180,18 @@ const EQPGame: React.FC = () => {
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data || "Server error");
-      
+
       // Show result dialog
       const isCorrect = data.isCorrect || false;
       setCurrentResult(isCorrect ? 'pass' : 'fail');
       setShowResultDialog(true);
-      
+
       // Update progress counters and stats
       if (isCorrect) {
         setPassedRounds(prev => prev + 1);
         // Reload game stats after successful submission
         loadGameStats();
-        
+
         // If all solutions found, show special message
         if (data.allSolutionsFound) {
           setMessage("🎉 " + (data.message || "All solutions found! Game has been reset."));
@@ -228,7 +228,7 @@ const EQPGame: React.FC = () => {
       if (!res.ok) throw new Error("Failed to solve");
       const data = await res.json();
       setSolutionInfo(data);
-      
+
       // Scroll to solution info after a short delay
       setTimeout(() => {
         const solutionSection = document.querySelector('.eqp-solution-info');
@@ -251,14 +251,14 @@ const EQPGame: React.FC = () => {
           ← Back to Games
         </button>
         <button onClick={() => navigate('/games/eqp/stats')} className="eqp-stats-btn">
-          📊 View Statistics
+          View Statistics
         </button>
       </div>
 
       <div className="eqp-header">
         <h1>♟️ Eight Queens Puzzle</h1>
         <p>Place 8 queens so no two attack each other. Submit your solution or let the solver find all solutions.</p>
-        
+
         {gameStats && (
           <div className="eqp-global-stats">
             <div className="stat-item">
@@ -275,13 +275,13 @@ const EQPGame: React.FC = () => {
             </div>
           </div>
         )}
-        
+
         <div className="eqp-game-stats">
           <div className="player-info">
             <span className="player-label">Player:</span>
             <span className="player-name">{playerName}</span>
           </div>
-          
+
           <div className="game-progress">
             <div className="progress-item passed">
               <span className="progress-label">Passed:</span>
@@ -313,7 +313,7 @@ const EQPGame: React.FC = () => {
                 </div>
               ))}
             </div>
-            
+
             <div className="eqp-submit-section">
               <button className="eqp-submit-btn" onClick={submitPlayerSolution} disabled={loading}>
                 Submit Solution
@@ -347,8 +347,8 @@ const EQPGame: React.FC = () => {
                   const speedup = otherAlgo && isSequential
                     ? ((r.executionTimeMs / otherAlgo.executionTimeMs) * 100).toFixed(1)
                     : otherAlgo && !isSequential
-                    ? ((otherAlgo.executionTimeMs / r.executionTimeMs) * 100).toFixed(1)
-                    : null;
+                      ? ((otherAlgo.executionTimeMs / r.executionTimeMs) * 100).toFixed(1)
+                      : null;
 
                   return (
                     <div key={i} className="eqp-alg-card">

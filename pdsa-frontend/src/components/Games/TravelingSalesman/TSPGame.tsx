@@ -11,7 +11,7 @@ interface City {
 
 interface TSPGameRound {
   gameId: string;
-  homeCityName: string; 
+  homeCityName: string;
   homeCityIndex: number;
   distanceMatrix: number[][];
   allCities: City[];
@@ -45,7 +45,7 @@ const TSPGame: React.FC = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string>('');
   const [validationResult, setValidationResult] = useState<any>(null);
-  
+
   // Game progress tracking
   const [passedRounds, setPassedRounds] = useState<number>(0);
   const [failedRounds, setFailedRounds] = useState<number>(0);
@@ -57,7 +57,7 @@ const TSPGame: React.FC = () => {
 
   const API_BASE_URL = 'http://localhost:5007';
   const cities = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J'];
-  
+
   // Get player name from sessionStorage
   const playerName = sessionStorage.getItem('currentPlayerName') || 'Anonymous';
 
@@ -102,9 +102,9 @@ const TSPGame: React.FC = () => {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' }
       });
-      
+
       if (!response.ok) throw new Error('Failed to create new game');
-      
+
       const data = await response.json();
       setGameRound(data);
       setSelectedCities([data.homeCityName]);
@@ -123,7 +123,7 @@ const TSPGame: React.FC = () => {
 
   const toggleCitySelection = (city: string) => {
     if (gameRound?.homeCityName === city) return; // Can't deselect home city
-    
+
     setSelectedCities(prev => {
       if (prev.includes(city)) {
         return prev.filter(c => c !== city);
@@ -141,7 +141,7 @@ const TSPGame: React.FC = () => {
 
     setLoading(true);
     setError('');
-    
+
     try {
       const response = await fetch(`${API_BASE_URL}/api/tsp/solve`, {
         method: 'POST',
@@ -153,13 +153,13 @@ const TSPGame: React.FC = () => {
           distanceMatrix: gameRound.distanceMatrix
         })
       });
-      
+
       if (!response.ok) throw new Error('Failed to solve TSP');
-      
+
       const data = await response.json();
       setSolution(data);
       setGameStatus('solved');
-      
+
       // Scroll to distance matrix section
       setTimeout(() => {
         if (distanceMatrixRef.current) {
@@ -188,12 +188,12 @@ const TSPGame: React.FC = () => {
 
     setLoading(true);
     setError('');
-    
+
     try {
       // Calculate user's route distance
       const userDistance = calculateRouteDistance(userRoute);
       const isRouteCorrect = JSON.stringify(userRoute) === JSON.stringify(solution.optimalRoute);
-      
+
       const response = await fetch(`${API_BASE_URL}/api/tsp/validate-answer`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -203,34 +203,34 @@ const TSPGame: React.FC = () => {
           tolerancePercentage: 5
         })
       });
-      
+
       if (!response.ok) throw new Error('Failed to validate answer');
-      
+
       const data = await response.json();
       setValidationResult(data);
       setGameStatus('validated');
-      
+
       // Store formatted route for display
       setUserAnswer(formatRoute(userRoute));
-      
+
       // Update game progress and show result dialog
       if (data.isCorrect || isRouteCorrect) {
         const newPassed = passedRounds + 1;
         setPassedRounds(newPassed);
-        
+
         // Determine result type
         if (newPassed === failedRounds) {
           setCurrentResult('draw');
         } else {
           setCurrentResult('pass');
         }
-        
+
         // Save game to database only if answer is correct
         await saveGameToDatabase();
       } else {
         const newFailed = failedRounds + 1;
         setFailedRounds(newFailed);
-        
+
         // Determine result type
         if (newFailed === passedRounds) {
           setCurrentResult('draw');
@@ -238,7 +238,7 @@ const TSPGame: React.FC = () => {
           setCurrentResult('fail');
         }
       }
-      
+
       // Show result dialog
       setShowResultDialog(true);
     } catch (err) {
@@ -262,7 +262,7 @@ const TSPGame: React.FC = () => {
           const cityAIndex = gameRound.allCities.find(c => c.name === cityA)?.index || 0;
           const cityBIndex = gameRound.allCities.find(c => c.name === cityB)?.index || 0;
           const distance = gameRound.distanceMatrix[cityAIndex][cityBIndex];
-          
+
           distances.push({
             cityA,
             cityB,
@@ -310,25 +310,25 @@ const TSPGame: React.FC = () => {
 
   const calculateRouteDistance = (route: string[]): number => {
     if (!gameRound || route.length === 0) return 0;
-    
+
     let totalDistance = 0;
-    
+
     // Distance from home to first city
     const firstCityIndex = gameRound.allCities.find(c => c.name === route[0])?.index || 0;
     const homeIndex = gameRound.homeCityIndex;
     totalDistance += gameRound.distanceMatrix[homeIndex][firstCityIndex];
-    
+
     // Distance between consecutive cities in route
     for (let i = 0; i < route.length - 1; i++) {
       const fromIndex = gameRound.allCities.find(c => c.name === route[i])?.index || 0;
       const toIndex = gameRound.allCities.find(c => c.name === route[i + 1])?.index || 0;
       totalDistance += gameRound.distanceMatrix[fromIndex][toIndex];
     }
-    
+
     // Distance from last city back to home
     const lastCityIndex = gameRound.allCities.find(c => c.name === route[route.length - 1])?.index || 0;
     totalDistance += gameRound.distanceMatrix[lastCityIndex][homeIndex];
-    
+
     return totalDistance;
   };
 
@@ -348,20 +348,20 @@ const TSPGame: React.FC = () => {
           ← Back to Games
         </button>
         <button onClick={() => navigate('/games/tsp/stats')} className="tsp-stats-btn">
-          📊 View Statistics
+          View Statistics
         </button>
       </div>
 
       <div className="tsp-header">
         <h1>🗺️ Traveling Salesman Problem</h1>
         <p>Find the shortest route to visit selected cities and return home</p>
-        
+
         <div className="tsp-game-stats">
           <div className="player-info">
             <span className="player-label">Player:</span>
             <span className="player-name">{playerName}</span>
           </div>
-          
+
           <div className="game-progress">
             <div className="progress-item passed">
               <span className="progress-label">Passed: </span>
@@ -396,16 +396,15 @@ const TSPGame: React.FC = () => {
                     City {gameRound.homeCityName}
                   </span>
                 </div>
-                
+
                 <div className="tsp-city-selection">
                   <label>Select Cities to Visit:</label>
                   <div className="tsp-city-grid">
                     {cities.map(city => (
                       <button
                         key={city}
-                        className={`tsp-city-btn ${
-                          selectedCities.includes(city) ? 'selected' : ''
-                        } ${gameRound.homeCityName === city ? 'home' : ''}`}
+                        className={`tsp-city-btn ${selectedCities.includes(city) ? 'selected' : ''
+                          } ${gameRound.homeCityName === city ? 'home' : ''}`}
                         onClick={() => toggleCitySelection(city)}
                         disabled={gameRound.homeCityName === city}
                       >
@@ -415,13 +414,13 @@ const TSPGame: React.FC = () => {
                     ))}
                   </div>
                   <p className="tsp-selection-info">
-                    Selected: {selectedCities.length} cities | 
+                    Selected: {selectedCities.length} cities |
                     Route: {selectedCities.join(' → ')} → {gameRound.homeCityName}
                   </p>
                 </div>
 
                 {gameStatus === 'setup' && (
-                  <button 
+                  <button
                     onClick={solveTSP}
                     disabled={selectedCities.length < 2 || loading}
                     className="tsp-solve-btn"
@@ -501,7 +500,7 @@ const TSPGame: React.FC = () => {
                           <span className="route-arrow">→</span>
                           {userRoute.map((city, index) => (
                             <React.Fragment key={index}>
-                              <span 
+                              <span
                                 className="route-city clickable"
                                 onClick={() => {
                                   const newRoute = userRoute.filter((_, i) => i !== index);
@@ -522,7 +521,7 @@ const TSPGame: React.FC = () => {
                         <span className="route-placeholder">Click cities below to start building your route</span>
                       )}
                     </div>
-                    
+
                     <div className="tsp-route-builder">
                       <div className="route-cities-grid">
                         {selectedCities.filter(city => city !== gameRound?.homeCityName).map(city => {
@@ -564,16 +563,16 @@ const TSPGame: React.FC = () => {
                     )}
 
                     <div className="tsp-route-actions">
-                      <button 
-                        className="clear-route-btn" 
+                      <button
+                        className="clear-route-btn"
                         onClick={() => setUserRoute([])}
                         disabled={userRoute.length === 0}
                       >
                         Clear Route
                       </button>
-                      <button 
+                      <button
                         className="submit-route-btn"
-                        onClick={validateAnswer} 
+                        onClick={validateAnswer}
                         disabled={loading || userRoute.length !== selectedCities.length - 1}
                       >
                         {loading ? 'Checking...' : 'Submit Route'}
@@ -598,13 +597,13 @@ const TSPGame: React.FC = () => {
                         </>
                       ) : (
                         <>
-                          ❌ Incorrect. Your answer: {validationResult.userAnswer}km, 
-                          Correct answer: {validationResult.correctAnswer}km 
+                          ❌ Incorrect. Your answer: {validationResult.userAnswer}km,
+                          Correct answer: {validationResult.correctAnswer}km
                           (Difference: {validationResult.difference}km)
                         </>
-                    )}
-                  </p>
-                </div>
+                      )}
+                    </p>
+                  </div>
                 </>
               )}
 
@@ -626,7 +625,7 @@ const TSPGame: React.FC = () => {
                       </div>
                     ))}
                   </div>
-                  
+
                   <div className="tsp-optimal-solution">
                     <h4>🏆 Optimal Solution</h4>
                     <p><strong>Shortest Distance:</strong> {solution.optimalDistance}km</p>
