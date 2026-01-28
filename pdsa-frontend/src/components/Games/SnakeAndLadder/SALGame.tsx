@@ -58,7 +58,7 @@ const SALGame: React.FC = () => {
   const [showAnswerPopup, setShowAnswerPopup] = useState<boolean>(false);
   const [currentResult, setCurrentResult] = useState<'pass' | 'fail' | 'draw'>('pass');
 
-  const API_BASE_URL = 'http://localhost:5007';
+  const API_BASE_URL = '';
   
   // Get player name from sessionStorage
   const playerName = sessionStorage.getItem('currentPlayerName') || 'Anonymous';

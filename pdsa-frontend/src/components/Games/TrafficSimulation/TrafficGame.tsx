@@ -123,7 +123,7 @@ export default function TrafficGame() {
       };
 
       const response = await axios.post<ApiResponse>(
-        "http://localhost:5007/api/traffic/submit-answer",
+        "/api/traffic/submit-answer",
         payload
       );
 

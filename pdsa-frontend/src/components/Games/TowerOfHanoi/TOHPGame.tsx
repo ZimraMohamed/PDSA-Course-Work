@@ -103,7 +103,7 @@ const TOHPGame: React.FC = () => {
     console.log("Submitting sequence:", userSequence);
 
     try {
-      const res = await fetch("http://localhost:5007/api/TOHP/submit-answer", {
+      const res = await fetch("/api/TOHP/submit-answer", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({

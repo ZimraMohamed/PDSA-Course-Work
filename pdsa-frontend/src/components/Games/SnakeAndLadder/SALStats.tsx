@@ -40,7 +40,7 @@ const SALStats: React.FC = () => {
   const [error, setError] = useState('');
   const [activeTab, setActiveTab] = useState<'history' | 'leaderboard'>('history');
 
-  const API_BASE_URL = 'http://localhost:5007';
+  const API_BASE_URL = '';
   const playerName = sessionStorage.getItem('currentPlayerName') || 'Anonymous';
 
   useEffect(() => {
