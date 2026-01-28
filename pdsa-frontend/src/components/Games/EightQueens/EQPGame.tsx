@@ -36,7 +36,7 @@ type GameStats = {
   uniquePlayers: number;
 };
 
-const API_BASE = "";
+const API_BASE = "http://localhost:5007";
 
 const EQPGame: React.FC = () => {
   const navigate = useNavigate();

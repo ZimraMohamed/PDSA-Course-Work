@@ -21,7 +21,7 @@ type AlgorithmTime = {
   dateExecuted: string;
 };
 
-const API_BASE = "";
+const API_BASE = "http://localhost:5007";
 
 const EQPStats: React.FC = () => {
   const navigate = useNavigate();

@@ -55,7 +55,7 @@ const TSPGame: React.FC = () => {
 
   const distanceMatrixRef = useRef<HTMLDivElement>(null);
 
-  const API_BASE_URL = '';
+  const API_BASE_URL = 'http://localhost:5007';
   const cities = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J'];
 
   // Get player name from sessionStorage
