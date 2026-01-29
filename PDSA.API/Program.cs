@@ -183,7 +183,27 @@ builder.Services.AddCors(options =>
               .AllowAnyMethod()
               .AllowAnyHeader();
     });
+
+    options.AddPolicy("AllowLocalhost", policy =>
+    {
+        policy.WithOrigins("http://localhost:5173", "http://localhost:3000", "http://localhost:3001", "http://localhost:3002", "http://localhost:3003")
+              .AllowAnyMethod()
+              .AllowAnyHeader();
+    });
 });
+
+
+
+// // Add CORS for frontend
+// builder.Services.AddCors(options =>
+// {
+//     options.AddPolicy("AllowLocalhost", policy =>
+//     {
+//         policy.WithOrigins("http://localhost:5173", "http://localhost:3000", "http://localhost:3001", "http://localhost:3002", "http://localhost:3003")
+//               .AllowAnyMethod()
+//               .AllowAnyHeader();
+//     });
+// });
 
 var app = builder.Build();
 
