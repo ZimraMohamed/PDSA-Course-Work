@@ -36,7 +36,7 @@ type GameStats = {
   uniquePlayers: number;
 };
 
-const API_BASE = "https://3.109.143.222";
+const API_BASE = "http://3.109.143.222";
 
 const EQPGame: React.FC = () => {
   const navigate = useNavigate();
